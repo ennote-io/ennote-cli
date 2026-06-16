@@ -24,7 +24,7 @@ scoop install ennote
 ### Universal Shell Script (CI/CD)
 For headless environments, Alpine Linux, or raw CI/CD runners:
 ```bash
-curl -sSfL https://ennote.io/get-cli.sh | sh
+curl -1sLf https://get.ennote.io/get-cli.sh | sh
 ```
 
 ### Manual Download
