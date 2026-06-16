@@ -32,10 +32,10 @@ jobs:
             ${{ runner.os }}-go-build-
 
 
-      - uses: sigstore/cosign-installer@v3.5.0
+      - uses: sigstore/cosign-installer@v4.1.1
 
       - name: Setup Anchore Syft
-        uses: anchore/sbom-action@v0.18.0
+        uses: anchore/sbom-action/download-syft@v0.24.0
 
       - uses: goreleaser/goreleaser-action@v6
         with:
