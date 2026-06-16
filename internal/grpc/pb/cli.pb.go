@@ -167,8 +167,8 @@ const file_api_proto_cli_v1_cli_proto_rawDesc = "" +
 	"\x13session_wrapped_key\x18\x02 \x01(\fR\x11sessionWrappedKey2_\n" +
 	"\n" +
 	"CliService\x12Q\n" +
-	"\x14GetSecretVersionData\x12\x1b.cli.v1.GetCliSecretRequest\x1a\x1c.cli.v1.GetCliSecretResponseBJ\n" +
-	"\x13io.ennote.cli.protoP\x01Z1github.com/ennote-io/ennote-cli/internal/grpc/pbb\x06proto3"
+	"\x14GetSecretVersionData\x12\x1b.cli.v1.GetCliSecretRequest\x1a\x1c.cli.v1.GetCliSecretResponseBI\n" +
+	"\x13io.ennote.cli.protoP\x01Z0github.com/ennote-io/ennote-cli/internal/grpc/pbb\x06proto3"
 
 var (
 	file_api_proto_cli_v1_cli_proto_rawDescOnce sync.Once
