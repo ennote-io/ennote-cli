@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package cli.v1;
+
+option java_package = "io.ennote.cli.proto";
+option java_multiple_files = true;
+option go_package = "github.com/ennote-io/ennote-cli/internal/grpc/pb";
+
+service CliService {
+  rpc GetSecretVersionData (GetCliSecretRequest) returns (GetCliSecretResponse);
+}
+
+message GetCliSecretRequest {
+  string session_public_key = 1;
+  string secret_name = 2;
+  optional int32 secret_version_number = 3;
+  string workspace_id = 4;
+  string organization_id = 5;
+}
+
+message GetCliSecretResponse {
+  bytes encrypted_blob = 1;
+  bytes session_wrapped_key = 2;
+}

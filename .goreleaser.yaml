@@ -1,0 +1,104 @@
+version: 2
+
+project_name: ennote
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+      - freebsd
+      - netbsd
+      - openbsd
+    goarch:
+      - amd64
+      - arm64
+      - 386
+      - arm
+    goarm:
+      - 6
+      - 7
+    main: ./cmd/ennote/main.go
+    ldflags:
+      - -s -w
+      - -X github.com/ennote-io/ennote-cli/internal/config.Version={{.Version}}
+      - -X github.com/ennote-io/ennote-cli/internal/config.BackendURL={{.Env.BACKEND_URL}}
+      - -X github.com/ennote-io/ennote-cli/internal/config.RedirectURI=http://127.0.0.1:8888/callback
+
+archives:
+  - formats:
+      - tar.gz
+    name_template: >-
+      {{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}
+    format_overrides:
+      - goos: windows
+        formats:
+          - zip
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
+
+
+nfpms:
+  - file_name_template: >-
+      {{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}
+    homepage: "https://ennote.io"
+    maintainer: "Ennote Security <security@ennote.io>"
+    description: "The Identity-Driven Secret Manager CLI."
+    vendor: "Ennote Security"
+    license: "Proprietary"
+    formats:
+      - deb
+      - rpm
+      - apk
+      - archlinux
+    bindir: /usr/bin
+
+sboms:
+  - artifacts: archive
+
+signs:
+  - artifacts: checksum
+    cmd: cosign
+    args:
+      - sign-blob
+      - '--yes'
+      - '--output-signature=${signature}'
+      - '--output-certificate=${certificate}'
+      - '${artifact}'
+
+checksum:
+  name_template: 'checksums.txt'
+
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+
+homebrew_casks:
+  - repository:
+      owner: ennote-io
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    directory: Casks
+    homepage: "https://ennote.io"
+    description: "The Identity-Driven Secret Manager CLI."
+
+
+scoops:
+  - repository:
+      owner: ennote-io
+      name: scoop-bucket
+      token: "{{ .Env.SCOOP_BUCKET_GITHUB_TOKEN }}"
+    directory: bucket
+    homepage: "https://ennote.io"
+    description: "The Identity-Driven Secret Manager CLI."
