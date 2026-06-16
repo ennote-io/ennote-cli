@@ -66,12 +66,14 @@ sboms:
 signs:
   - artifacts: checksum
     cmd: cosign
+    certificate: '${artifact}.pem'
     args:
       - sign-blob
-      - '--yes'
-      - '--output-signature=${signature}'
       - '--output-certificate=${certificate}'
+      - '--output-signature=${signature}'
+      - '--bundle=${artifact}.bundle'
       - '${artifact}'
+      - '--yes'
 
 checksum:
   name_template: 'checksums.txt'
