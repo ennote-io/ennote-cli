@@ -17,7 +17,7 @@ brew install ennote-io/tap/ennote
 
 ### Windows (Scoop)
 ```powershell
-scoop bucket add ennote-io [https://github.com/ennote-io/scoop-bucket](https://github.com/ennote-io/scoop-bucket)
+scoop bucket add ennote-io https://github.com/ennote-io/scoop-bucket
 scoop install ennote
 ```
 
