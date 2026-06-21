@@ -8,6 +8,10 @@ option go_package = "github.com/ennote-io/ennote-cli/internal/grpc/pb";
 
 service CliService {
   rpc GetSecretVersionData (GetCliSecretRequest) returns (GetCliSecretResponse);
+
+  rpc PutCliShareData (PutCliShareDataRequest) returns (PutCliShareDataResponse);
+  rpc GetCliShareData (GetCliShareDataRequest) returns (GetCliShareDataResponse);
+  rpc CheckCliShareData (CheckCliShareDataRequest) returns (CheckCliShareDataResponse);
 }
 
 message GetCliSecretRequest {
@@ -21,4 +25,31 @@ message GetCliSecretRequest {
 message GetCliSecretResponse {
   bytes encrypted_blob = 1;
   bytes session_wrapped_key = 2;
+}
+
+message PutCliShareDataRequest {
+  string encrypted_blob = 1;
+  int64 ttl = 2;
+  optional string password_hash = 3;
+}
+
+message PutCliShareDataResponse {
+  string id = 1;
+}
+
+message GetCliShareDataRequest {
+  string id = 1;
+  optional string password_hash = 2;
+}
+
+message GetCliShareDataResponse {
+  string encrypted_blob = 1;
+}
+
+message CheckCliShareDataRequest {
+  string id = 1;
+}
+
+message CheckCliShareDataResponse {
+  bool is_password_protected = 1;
 }

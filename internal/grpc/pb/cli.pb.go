@@ -149,6 +149,294 @@ func (x *GetCliSecretResponse) GetSessionWrappedKey() []byte {
 	return nil
 }
 
+type PutCliShareDataRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	EncryptedBlob string                 `protobuf:"bytes,1,opt,name=encrypted_blob,json=encryptedBlob,proto3" json:"encrypted_blob,omitempty"`
+	Ttl           int64                  `protobuf:"varint,2,opt,name=ttl,proto3" json:"ttl,omitempty"`
+	PasswordHash  *string                `protobuf:"bytes,3,opt,name=password_hash,json=passwordHash,proto3,oneof" json:"password_hash,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PutCliShareDataRequest) Reset() {
+	*x = PutCliShareDataRequest{}
+	mi := &file_api_proto_cli_v1_cli_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PutCliShareDataRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PutCliShareDataRequest) ProtoMessage() {}
+
+func (x *PutCliShareDataRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_cli_v1_cli_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PutCliShareDataRequest.ProtoReflect.Descriptor instead.
+func (*PutCliShareDataRequest) Descriptor() ([]byte, []int) {
+	return file_api_proto_cli_v1_cli_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *PutCliShareDataRequest) GetEncryptedBlob() string {
+	if x != nil {
+		return x.EncryptedBlob
+	}
+	return ""
+}
+
+func (x *PutCliShareDataRequest) GetTtl() int64 {
+	if x != nil {
+		return x.Ttl
+	}
+	return 0
+}
+
+func (x *PutCliShareDataRequest) GetPasswordHash() string {
+	if x != nil && x.PasswordHash != nil {
+		return *x.PasswordHash
+	}
+	return ""
+}
+
+type PutCliShareDataResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PutCliShareDataResponse) Reset() {
+	*x = PutCliShareDataResponse{}
+	mi := &file_api_proto_cli_v1_cli_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PutCliShareDataResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PutCliShareDataResponse) ProtoMessage() {}
+
+func (x *PutCliShareDataResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_cli_v1_cli_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PutCliShareDataResponse.ProtoReflect.Descriptor instead.
+func (*PutCliShareDataResponse) Descriptor() ([]byte, []int) {
+	return file_api_proto_cli_v1_cli_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *PutCliShareDataResponse) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type GetCliShareDataRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	PasswordHash  *string                `protobuf:"bytes,2,opt,name=password_hash,json=passwordHash,proto3,oneof" json:"password_hash,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetCliShareDataRequest) Reset() {
+	*x = GetCliShareDataRequest{}
+	mi := &file_api_proto_cli_v1_cli_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetCliShareDataRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetCliShareDataRequest) ProtoMessage() {}
+
+func (x *GetCliShareDataRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_cli_v1_cli_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetCliShareDataRequest.ProtoReflect.Descriptor instead.
+func (*GetCliShareDataRequest) Descriptor() ([]byte, []int) {
+	return file_api_proto_cli_v1_cli_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *GetCliShareDataRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *GetCliShareDataRequest) GetPasswordHash() string {
+	if x != nil && x.PasswordHash != nil {
+		return *x.PasswordHash
+	}
+	return ""
+}
+
+type GetCliShareDataResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	EncryptedBlob string                 `protobuf:"bytes,1,opt,name=encrypted_blob,json=encryptedBlob,proto3" json:"encrypted_blob,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetCliShareDataResponse) Reset() {
+	*x = GetCliShareDataResponse{}
+	mi := &file_api_proto_cli_v1_cli_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetCliShareDataResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetCliShareDataResponse) ProtoMessage() {}
+
+func (x *GetCliShareDataResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_cli_v1_cli_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetCliShareDataResponse.ProtoReflect.Descriptor instead.
+func (*GetCliShareDataResponse) Descriptor() ([]byte, []int) {
+	return file_api_proto_cli_v1_cli_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *GetCliShareDataResponse) GetEncryptedBlob() string {
+	if x != nil {
+		return x.EncryptedBlob
+	}
+	return ""
+}
+
+type CheckCliShareDataRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CheckCliShareDataRequest) Reset() {
+	*x = CheckCliShareDataRequest{}
+	mi := &file_api_proto_cli_v1_cli_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CheckCliShareDataRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CheckCliShareDataRequest) ProtoMessage() {}
+
+func (x *CheckCliShareDataRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_cli_v1_cli_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CheckCliShareDataRequest.ProtoReflect.Descriptor instead.
+func (*CheckCliShareDataRequest) Descriptor() ([]byte, []int) {
+	return file_api_proto_cli_v1_cli_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *CheckCliShareDataRequest) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+type CheckCliShareDataResponse struct {
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	IsPasswordProtected bool                   `protobuf:"varint,1,opt,name=is_password_protected,json=isPasswordProtected,proto3" json:"is_password_protected,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *CheckCliShareDataResponse) Reset() {
+	*x = CheckCliShareDataResponse{}
+	mi := &file_api_proto_cli_v1_cli_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CheckCliShareDataResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CheckCliShareDataResponse) ProtoMessage() {}
+
+func (x *CheckCliShareDataResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_cli_v1_cli_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CheckCliShareDataResponse.ProtoReflect.Descriptor instead.
+func (*CheckCliShareDataResponse) Descriptor() ([]byte, []int) {
+	return file_api_proto_cli_v1_cli_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *CheckCliShareDataResponse) GetIsPasswordProtected() bool {
+	if x != nil {
+		return x.IsPasswordProtected
+	}
+	return false
+}
+
 var File_api_proto_cli_v1_cli_proto protoreflect.FileDescriptor
 
 const file_api_proto_cli_v1_cli_proto_rawDesc = "" +
@@ -164,10 +452,30 @@ const file_api_proto_cli_v1_cli_proto_rawDesc = "" +
 	"\x16_secret_version_number\"m\n" +
 	"\x14GetCliSecretResponse\x12%\n" +
 	"\x0eencrypted_blob\x18\x01 \x01(\fR\rencryptedBlob\x12.\n" +
-	"\x13session_wrapped_key\x18\x02 \x01(\fR\x11sessionWrappedKey2_\n" +
+	"\x13session_wrapped_key\x18\x02 \x01(\fR\x11sessionWrappedKey\"\x8d\x01\n" +
+	"\x16PutCliShareDataRequest\x12%\n" +
+	"\x0eencrypted_blob\x18\x01 \x01(\tR\rencryptedBlob\x12\x10\n" +
+	"\x03ttl\x18\x02 \x01(\x03R\x03ttl\x12(\n" +
+	"\rpassword_hash\x18\x03 \x01(\tH\x00R\fpasswordHash\x88\x01\x01B\x10\n" +
+	"\x0e_password_hash\")\n" +
+	"\x17PutCliShareDataResponse\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"d\n" +
+	"\x16GetCliShareDataRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12(\n" +
+	"\rpassword_hash\x18\x02 \x01(\tH\x00R\fpasswordHash\x88\x01\x01B\x10\n" +
+	"\x0e_password_hash\"@\n" +
+	"\x17GetCliShareDataResponse\x12%\n" +
+	"\x0eencrypted_blob\x18\x01 \x01(\tR\rencryptedBlob\"*\n" +
+	"\x18CheckCliShareDataRequest\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"O\n" +
+	"\x19CheckCliShareDataResponse\x122\n" +
+	"\x15is_password_protected\x18\x01 \x01(\bR\x13isPasswordProtected2\xe1\x02\n" +
 	"\n" +
 	"CliService\x12Q\n" +
-	"\x14GetSecretVersionData\x12\x1b.cli.v1.GetCliSecretRequest\x1a\x1c.cli.v1.GetCliSecretResponseBI\n" +
+	"\x14GetSecretVersionData\x12\x1b.cli.v1.GetCliSecretRequest\x1a\x1c.cli.v1.GetCliSecretResponse\x12R\n" +
+	"\x0fPutCliShareData\x12\x1e.cli.v1.PutCliShareDataRequest\x1a\x1f.cli.v1.PutCliShareDataResponse\x12R\n" +
+	"\x0fGetCliShareData\x12\x1e.cli.v1.GetCliShareDataRequest\x1a\x1f.cli.v1.GetCliShareDataResponse\x12X\n" +
+	"\x11CheckCliShareData\x12 .cli.v1.CheckCliShareDataRequest\x1a!.cli.v1.CheckCliShareDataResponseBI\n" +
 	"\x13io.ennote.cli.protoP\x01Z0github.com/ennote-io/ennote-cli/internal/grpc/pbb\x06proto3"
 
 var (
@@ -182,16 +490,28 @@ func file_api_proto_cli_v1_cli_proto_rawDescGZIP() []byte {
 	return file_api_proto_cli_v1_cli_proto_rawDescData
 }
 
-var file_api_proto_cli_v1_cli_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_api_proto_cli_v1_cli_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_api_proto_cli_v1_cli_proto_goTypes = []any{
-	(*GetCliSecretRequest)(nil),  // 0: cli.v1.GetCliSecretRequest
-	(*GetCliSecretResponse)(nil), // 1: cli.v1.GetCliSecretResponse
+	(*GetCliSecretRequest)(nil),       // 0: cli.v1.GetCliSecretRequest
+	(*GetCliSecretResponse)(nil),      // 1: cli.v1.GetCliSecretResponse
+	(*PutCliShareDataRequest)(nil),    // 2: cli.v1.PutCliShareDataRequest
+	(*PutCliShareDataResponse)(nil),   // 3: cli.v1.PutCliShareDataResponse
+	(*GetCliShareDataRequest)(nil),    // 4: cli.v1.GetCliShareDataRequest
+	(*GetCliShareDataResponse)(nil),   // 5: cli.v1.GetCliShareDataResponse
+	(*CheckCliShareDataRequest)(nil),  // 6: cli.v1.CheckCliShareDataRequest
+	(*CheckCliShareDataResponse)(nil), // 7: cli.v1.CheckCliShareDataResponse
 }
 var file_api_proto_cli_v1_cli_proto_depIdxs = []int32{
 	0, // 0: cli.v1.CliService.GetSecretVersionData:input_type -> cli.v1.GetCliSecretRequest
-	1, // 1: cli.v1.CliService.GetSecretVersionData:output_type -> cli.v1.GetCliSecretResponse
-	1, // [1:2] is the sub-list for method output_type
-	0, // [0:1] is the sub-list for method input_type
+	2, // 1: cli.v1.CliService.PutCliShareData:input_type -> cli.v1.PutCliShareDataRequest
+	4, // 2: cli.v1.CliService.GetCliShareData:input_type -> cli.v1.GetCliShareDataRequest
+	6, // 3: cli.v1.CliService.CheckCliShareData:input_type -> cli.v1.CheckCliShareDataRequest
+	1, // 4: cli.v1.CliService.GetSecretVersionData:output_type -> cli.v1.GetCliSecretResponse
+	3, // 5: cli.v1.CliService.PutCliShareData:output_type -> cli.v1.PutCliShareDataResponse
+	5, // 6: cli.v1.CliService.GetCliShareData:output_type -> cli.v1.GetCliShareDataResponse
+	7, // 7: cli.v1.CliService.CheckCliShareData:output_type -> cli.v1.CheckCliShareDataResponse
+	4, // [4:8] is the sub-list for method output_type
+	0, // [0:4] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
@@ -203,13 +523,15 @@ func file_api_proto_cli_v1_cli_proto_init() {
 		return
 	}
 	file_api_proto_cli_v1_cli_proto_msgTypes[0].OneofWrappers = []any{}
+	file_api_proto_cli_v1_cli_proto_msgTypes[2].OneofWrappers = []any{}
+	file_api_proto_cli_v1_cli_proto_msgTypes[4].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_proto_cli_v1_cli_proto_rawDesc), len(file_api_proto_cli_v1_cli_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
