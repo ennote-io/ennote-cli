@@ -75,3 +75,22 @@ func NewSecureClient(target string, keyring config.SecureStorage, version string
 
 	return grpc.NewClient(target, opts...)
 }
+
+func NewPublicClient(target string) (*grpc.ClientConn, error) {
+	isLocalhost := target == "localhost" || target == "127.0.0.1" || strings.HasPrefix(target, "localhost:") || strings.HasPrefix(target, "127.0.0.1:")
+
+	var transportCreds credentials.TransportCredentials
+	if isLocalhost {
+		transportCreds = insecure.NewCredentials()
+	} else {
+		transportCreds = credentials.NewTLS(&tls.Config{
+			MinVersion: tls.VersionTLS13,
+		})
+	}
+
+	opts := []grpc.DialOption{
+		grpc.WithTransportCredentials(transportCreds),
+	}
+
+	return grpc.NewClient(target, opts...)
+}

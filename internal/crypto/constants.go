@@ -12,4 +12,8 @@ const (
 	MaxSpkiHeaderSize = 128
 
 	SessionIdentity = "valid-session-key"
+
+	AesKeyLength     = 32
+	Pbkdf2Iterations = 100000
+	Pbkdf2KeyLength  = 32
 )

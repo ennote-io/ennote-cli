@@ -126,7 +126,7 @@ func warnIfOutdated(current, latest string) {
 
 			fmt.Fprintf(os.Stderr, "\n⚠️  NOTICE: A new version of Ennote CLI is available (%s -> %s)\n", current, latest)
 			fmt.Fprintln(os.Stderr, "⚠️  Please update to ensure you have the latest security patches.")
-			fmt.Fprintf(os.Stderr, "🔗 Download here: %s\n\n", downloadURL)
+			fmt.Fprintf(os.Stderr, "\n Download here: %s\n\n", downloadURL)
 		}
 	}
 }

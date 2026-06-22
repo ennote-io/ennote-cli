@@ -20,6 +20,9 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	CliService_GetSecretVersionData_FullMethodName = "/cli.v1.CliService/GetSecretVersionData"
+	CliService_PutCliShareData_FullMethodName      = "/cli.v1.CliService/PutCliShareData"
+	CliService_GetCliShareData_FullMethodName      = "/cli.v1.CliService/GetCliShareData"
+	CliService_CheckCliShareData_FullMethodName    = "/cli.v1.CliService/CheckCliShareData"
 )
 
 // CliServiceClient is the client API for CliService service.
@@ -27,6 +30,9 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type CliServiceClient interface {
 	GetSecretVersionData(ctx context.Context, in *GetCliSecretRequest, opts ...grpc.CallOption) (*GetCliSecretResponse, error)
+	PutCliShareData(ctx context.Context, in *PutCliShareDataRequest, opts ...grpc.CallOption) (*PutCliShareDataResponse, error)
+	GetCliShareData(ctx context.Context, in *GetCliShareDataRequest, opts ...grpc.CallOption) (*GetCliShareDataResponse, error)
+	CheckCliShareData(ctx context.Context, in *CheckCliShareDataRequest, opts ...grpc.CallOption) (*CheckCliShareDataResponse, error)
 }
 
 type cliServiceClient struct {
@@ -47,11 +53,44 @@ func (c *cliServiceClient) GetSecretVersionData(ctx context.Context, in *GetCliS
 	return out, nil
 }
 
+func (c *cliServiceClient) PutCliShareData(ctx context.Context, in *PutCliShareDataRequest, opts ...grpc.CallOption) (*PutCliShareDataResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(PutCliShareDataResponse)
+	err := c.cc.Invoke(ctx, CliService_PutCliShareData_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *cliServiceClient) GetCliShareData(ctx context.Context, in *GetCliShareDataRequest, opts ...grpc.CallOption) (*GetCliShareDataResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetCliShareDataResponse)
+	err := c.cc.Invoke(ctx, CliService_GetCliShareData_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *cliServiceClient) CheckCliShareData(ctx context.Context, in *CheckCliShareDataRequest, opts ...grpc.CallOption) (*CheckCliShareDataResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CheckCliShareDataResponse)
+	err := c.cc.Invoke(ctx, CliService_CheckCliShareData_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CliServiceServer is the server API for CliService service.
 // All implementations must embed UnimplementedCliServiceServer
 // for forward compatibility.
 type CliServiceServer interface {
 	GetSecretVersionData(context.Context, *GetCliSecretRequest) (*GetCliSecretResponse, error)
+	PutCliShareData(context.Context, *PutCliShareDataRequest) (*PutCliShareDataResponse, error)
+	GetCliShareData(context.Context, *GetCliShareDataRequest) (*GetCliShareDataResponse, error)
+	CheckCliShareData(context.Context, *CheckCliShareDataRequest) (*CheckCliShareDataResponse, error)
 	mustEmbedUnimplementedCliServiceServer()
 }
 
@@ -64,6 +103,15 @@ type UnimplementedCliServiceServer struct{}
 
 func (UnimplementedCliServiceServer) GetSecretVersionData(context.Context, *GetCliSecretRequest) (*GetCliSecretResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetSecretVersionData not implemented")
+}
+func (UnimplementedCliServiceServer) PutCliShareData(context.Context, *PutCliShareDataRequest) (*PutCliShareDataResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method PutCliShareData not implemented")
+}
+func (UnimplementedCliServiceServer) GetCliShareData(context.Context, *GetCliShareDataRequest) (*GetCliShareDataResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetCliShareData not implemented")
+}
+func (UnimplementedCliServiceServer) CheckCliShareData(context.Context, *CheckCliShareDataRequest) (*CheckCliShareDataResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CheckCliShareData not implemented")
 }
 func (UnimplementedCliServiceServer) mustEmbedUnimplementedCliServiceServer() {}
 func (UnimplementedCliServiceServer) testEmbeddedByValue()                    {}
@@ -104,6 +152,60 @@ func _CliService_GetSecretVersionData_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CliService_PutCliShareData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PutCliShareDataRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CliServiceServer).PutCliShareData(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CliService_PutCliShareData_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CliServiceServer).PutCliShareData(ctx, req.(*PutCliShareDataRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CliService_GetCliShareData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCliShareDataRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CliServiceServer).GetCliShareData(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CliService_GetCliShareData_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CliServiceServer).GetCliShareData(ctx, req.(*GetCliShareDataRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CliService_CheckCliShareData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CheckCliShareDataRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CliServiceServer).CheckCliShareData(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CliService_CheckCliShareData_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CliServiceServer).CheckCliShareData(ctx, req.(*CheckCliShareDataRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // CliService_ServiceDesc is the grpc.ServiceDesc for CliService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -114,6 +216,18 @@ var CliService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetSecretVersionData",
 			Handler:    _CliService_GetSecretVersionData_Handler,
+		},
+		{
+			MethodName: "PutCliShareData",
+			Handler:    _CliService_PutCliShareData_Handler,
+		},
+		{
+			MethodName: "GetCliShareData",
+			Handler:    _CliService_GetCliShareData_Handler,
+		},
+		{
+			MethodName: "CheckCliShareData",
+			Handler:    _CliService_CheckCliShareData_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
