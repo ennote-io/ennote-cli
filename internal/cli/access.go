@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 	"strconv"
@@ -17,9 +16,6 @@ import (
 	clipb "github.com/ennote-io/ennote-cli/internal/grpc/pb"
 	"github.com/ennote-io/ennote-cli/internal/secrets"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 var getCmd = &cobra.Command{
@@ -40,9 +36,8 @@ Syntax for the secret query:
   # Inject secret into a command
   ennote secret get "stripe" -- npm run dev
   ennote secret get "aws" -- aws s3 ls`,
-	SilenceUsage: true,
-	Args:         cobra.MinimumNArgs(1),
-	RunE:         runGetCommand,
+	Args: cobra.MinimumNArgs(1),
+	RunE: runGetCommand,
 }
 
 func init() {
@@ -53,18 +48,11 @@ func init() {
 }
 
 func runGetCommand(cmd *cobra.Command, args []string) error {
-	orgID, _ := cmd.Flags().GetString("organization-id")
-	if orgID == "" {
-		orgID = viper.GetString("organization_id")
-	}
+	cmd.SilenceUsage = true
 
-	workspaceID, _ := cmd.Flags().GetString("workspace-id")
-	if workspaceID == "" {
-		workspaceID = viper.GetString("workspace_id")
-	}
-
-	if orgID == "" || workspaceID == "" {
-		return fmt.Errorf("organization-id and workspace-id are required context. Set them via flags, ENNOTE_ environment variables, or 'ennote config set'")
+	orgID, workspaceID, err := resolveContext(cmd)
+	if err != nil {
+		return err
 	}
 
 	secretQuery := args[0]
@@ -83,7 +71,7 @@ func runGetCommand(cmd *cobra.Command, args []string) error {
 	keyring := config.NewOSKeyring()
 	envToken := os.Getenv("ENNOTE_TOKEN")
 
-	conn, err := grpc.NewSecureClient(appConfig.BackendURL, keyring, appConfig.Version, envToken)
+	conn, err := grpc.NewSecureClient(appConfig.BackendURL, keyring, appConfig.Version, envToken, orgID, workspaceID)
 	if err != nil {
 		return fmt.Errorf("failed to initialize gRPC client: %w", err)
 	}
@@ -98,13 +86,7 @@ func runGetCommand(cmd *cobra.Command, args []string) error {
 
 	plaintextJSON, err := secrets.FetchAndDecapsulate(ctx, client, orgID, workspaceID, name, version)
 	if err != nil {
-		if st, ok := status.FromError(errors.Unwrap(err)); ok {
-			if st.Code() == codes.Unauthenticated {
-				return fmt.Errorf("unauthorized: your session is invalid or expired. Please run 'ennote auth login' to authenticate")
-			}
-			return errors.New(st.Message())
-		}
-		return err
+		return handleGRPCError(err)
 	}
 	defer crypto.ZeroMemory(plaintextJSON)
 

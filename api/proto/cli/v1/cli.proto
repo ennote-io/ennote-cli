@@ -12,6 +12,11 @@ service CliService {
   rpc PutCliShareData (PutCliShareDataRequest) returns (PutCliShareDataResponse);
   rpc GetCliShareData (GetCliShareDataRequest) returns (GetCliShareDataResponse);
   rpc CheckCliShareData (CheckCliShareDataRequest) returns (CheckCliShareDataResponse);
+
+  rpc AddCliSecret (AddCliSecretRequest) returns (AddCliSecretResponse);
+  rpc AddMultiCliSecret (AddMultiCliSecretRequest) returns (AddMultiCliSecretResponse);
+
+  rpc GetCryptoConfig (GetCliCryptoConfigRequest) returns (GetCliCryptoConfigResponse);
 }
 
 message GetCliSecretRequest {
@@ -52,4 +57,39 @@ message CheckCliShareDataRequest {
 
 message CheckCliShareDataResponse {
   bool is_password_protected = 1;
+}
+
+message AddCliSecretRequest {
+  string name = 1;
+  string workspace_id = 2;
+  string organization_id = 3;
+  string type = 4;
+  string encrypted_blob = 5;
+  optional string notes = 6;
+  optional string url = 7;
+  repeated string labels = 8;
+}
+
+message AddCliSecretResponse {
+  string id = 1;
+  string name = 2;
+}
+
+message AddMultiCliSecretRequest {
+  repeated AddCliSecretRequest secrets = 1;
+}
+
+message AddMultiCliSecretResponse {
+  repeated AddCliSecretResponse secrets = 1;
+}
+
+message GetCliCryptoConfigRequest {
+  string organization_id = 1;
+  string workspace_id = 2;
+}
+
+message GetCliCryptoConfigResponse {
+  string algorithm = 1;
+  bytes public_key = 2;
+  string key_version = 3;
 }

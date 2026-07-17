@@ -437,6 +437,358 @@ func (x *CheckCliShareDataResponse) GetIsPasswordProtected() bool {
 	return false
 }
 
+type AddCliSecretRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Name           string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	WorkspaceId    string                 `protobuf:"bytes,2,opt,name=workspace_id,json=workspaceId,proto3" json:"workspace_id,omitempty"`
+	OrganizationId string                 `protobuf:"bytes,3,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
+	Type           string                 `protobuf:"bytes,4,opt,name=type,proto3" json:"type,omitempty"`
+	EncryptedBlob  string                 `protobuf:"bytes,5,opt,name=encrypted_blob,json=encryptedBlob,proto3" json:"encrypted_blob,omitempty"`
+	Notes          *string                `protobuf:"bytes,6,opt,name=notes,proto3,oneof" json:"notes,omitempty"`
+	Url            *string                `protobuf:"bytes,7,opt,name=url,proto3,oneof" json:"url,omitempty"`
+	Labels         []string               `protobuf:"bytes,8,rep,name=labels,proto3" json:"labels,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *AddCliSecretRequest) Reset() {
+	*x = AddCliSecretRequest{}
+	mi := &file_api_proto_cli_v1_cli_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AddCliSecretRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AddCliSecretRequest) ProtoMessage() {}
+
+func (x *AddCliSecretRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_cli_v1_cli_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AddCliSecretRequest.ProtoReflect.Descriptor instead.
+func (*AddCliSecretRequest) Descriptor() ([]byte, []int) {
+	return file_api_proto_cli_v1_cli_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *AddCliSecretRequest) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *AddCliSecretRequest) GetWorkspaceId() string {
+	if x != nil {
+		return x.WorkspaceId
+	}
+	return ""
+}
+
+func (x *AddCliSecretRequest) GetOrganizationId() string {
+	if x != nil {
+		return x.OrganizationId
+	}
+	return ""
+}
+
+func (x *AddCliSecretRequest) GetType() string {
+	if x != nil {
+		return x.Type
+	}
+	return ""
+}
+
+func (x *AddCliSecretRequest) GetEncryptedBlob() string {
+	if x != nil {
+		return x.EncryptedBlob
+	}
+	return ""
+}
+
+func (x *AddCliSecretRequest) GetNotes() string {
+	if x != nil && x.Notes != nil {
+		return *x.Notes
+	}
+	return ""
+}
+
+func (x *AddCliSecretRequest) GetUrl() string {
+	if x != nil && x.Url != nil {
+		return *x.Url
+	}
+	return ""
+}
+
+func (x *AddCliSecretRequest) GetLabels() []string {
+	if x != nil {
+		return x.Labels
+	}
+	return nil
+}
+
+type AddCliSecretResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AddCliSecretResponse) Reset() {
+	*x = AddCliSecretResponse{}
+	mi := &file_api_proto_cli_v1_cli_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AddCliSecretResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AddCliSecretResponse) ProtoMessage() {}
+
+func (x *AddCliSecretResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_cli_v1_cli_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AddCliSecretResponse.ProtoReflect.Descriptor instead.
+func (*AddCliSecretResponse) Descriptor() ([]byte, []int) {
+	return file_api_proto_cli_v1_cli_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *AddCliSecretResponse) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *AddCliSecretResponse) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+type AddMultiCliSecretRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Secrets       []*AddCliSecretRequest `protobuf:"bytes,1,rep,name=secrets,proto3" json:"secrets,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AddMultiCliSecretRequest) Reset() {
+	*x = AddMultiCliSecretRequest{}
+	mi := &file_api_proto_cli_v1_cli_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AddMultiCliSecretRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AddMultiCliSecretRequest) ProtoMessage() {}
+
+func (x *AddMultiCliSecretRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_cli_v1_cli_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AddMultiCliSecretRequest.ProtoReflect.Descriptor instead.
+func (*AddMultiCliSecretRequest) Descriptor() ([]byte, []int) {
+	return file_api_proto_cli_v1_cli_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *AddMultiCliSecretRequest) GetSecrets() []*AddCliSecretRequest {
+	if x != nil {
+		return x.Secrets
+	}
+	return nil
+}
+
+type AddMultiCliSecretResponse struct {
+	state         protoimpl.MessageState  `protogen:"open.v1"`
+	Secrets       []*AddCliSecretResponse `protobuf:"bytes,1,rep,name=secrets,proto3" json:"secrets,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AddMultiCliSecretResponse) Reset() {
+	*x = AddMultiCliSecretResponse{}
+	mi := &file_api_proto_cli_v1_cli_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AddMultiCliSecretResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AddMultiCliSecretResponse) ProtoMessage() {}
+
+func (x *AddMultiCliSecretResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_cli_v1_cli_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AddMultiCliSecretResponse.ProtoReflect.Descriptor instead.
+func (*AddMultiCliSecretResponse) Descriptor() ([]byte, []int) {
+	return file_api_proto_cli_v1_cli_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *AddMultiCliSecretResponse) GetSecrets() []*AddCliSecretResponse {
+	if x != nil {
+		return x.Secrets
+	}
+	return nil
+}
+
+type GetCliCryptoConfigRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	OrganizationId string                 `protobuf:"bytes,1,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
+	WorkspaceId    string                 `protobuf:"bytes,2,opt,name=workspace_id,json=workspaceId,proto3" json:"workspace_id,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *GetCliCryptoConfigRequest) Reset() {
+	*x = GetCliCryptoConfigRequest{}
+	mi := &file_api_proto_cli_v1_cli_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetCliCryptoConfigRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetCliCryptoConfigRequest) ProtoMessage() {}
+
+func (x *GetCliCryptoConfigRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_cli_v1_cli_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetCliCryptoConfigRequest.ProtoReflect.Descriptor instead.
+func (*GetCliCryptoConfigRequest) Descriptor() ([]byte, []int) {
+	return file_api_proto_cli_v1_cli_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *GetCliCryptoConfigRequest) GetOrganizationId() string {
+	if x != nil {
+		return x.OrganizationId
+	}
+	return ""
+}
+
+func (x *GetCliCryptoConfigRequest) GetWorkspaceId() string {
+	if x != nil {
+		return x.WorkspaceId
+	}
+	return ""
+}
+
+type GetCliCryptoConfigResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Algorithm     string                 `protobuf:"bytes,1,opt,name=algorithm,proto3" json:"algorithm,omitempty"`
+	PublicKey     []byte                 `protobuf:"bytes,2,opt,name=public_key,json=publicKey,proto3" json:"public_key,omitempty"`
+	KeyVersion    string                 `protobuf:"bytes,3,opt,name=key_version,json=keyVersion,proto3" json:"key_version,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetCliCryptoConfigResponse) Reset() {
+	*x = GetCliCryptoConfigResponse{}
+	mi := &file_api_proto_cli_v1_cli_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetCliCryptoConfigResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetCliCryptoConfigResponse) ProtoMessage() {}
+
+func (x *GetCliCryptoConfigResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_cli_v1_cli_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetCliCryptoConfigResponse.ProtoReflect.Descriptor instead.
+func (*GetCliCryptoConfigResponse) Descriptor() ([]byte, []int) {
+	return file_api_proto_cli_v1_cli_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *GetCliCryptoConfigResponse) GetAlgorithm() string {
+	if x != nil {
+		return x.Algorithm
+	}
+	return ""
+}
+
+func (x *GetCliCryptoConfigResponse) GetPublicKey() []byte {
+	if x != nil {
+		return x.PublicKey
+	}
+	return nil
+}
+
+func (x *GetCliCryptoConfigResponse) GetKeyVersion() string {
+	if x != nil {
+		return x.KeyVersion
+	}
+	return ""
+}
+
 var File_api_proto_cli_v1_cli_proto protoreflect.FileDescriptor
 
 const file_api_proto_cli_v1_cli_proto_rawDesc = "" +
@@ -469,13 +821,43 @@ const file_api_proto_cli_v1_cli_proto_rawDesc = "" +
 	"\x18CheckCliShareDataRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"O\n" +
 	"\x19CheckCliShareDataResponse\x122\n" +
-	"\x15is_password_protected\x18\x01 \x01(\bR\x13isPasswordProtected2\xe1\x02\n" +
+	"\x15is_password_protected\x18\x01 \x01(\bR\x13isPasswordProtected\"\x8c\x02\n" +
+	"\x13AddCliSecretRequest\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12!\n" +
+	"\fworkspace_id\x18\x02 \x01(\tR\vworkspaceId\x12'\n" +
+	"\x0forganization_id\x18\x03 \x01(\tR\x0eorganizationId\x12\x12\n" +
+	"\x04type\x18\x04 \x01(\tR\x04type\x12%\n" +
+	"\x0eencrypted_blob\x18\x05 \x01(\tR\rencryptedBlob\x12\x19\n" +
+	"\x05notes\x18\x06 \x01(\tH\x00R\x05notes\x88\x01\x01\x12\x15\n" +
+	"\x03url\x18\a \x01(\tH\x01R\x03url\x88\x01\x01\x12\x16\n" +
+	"\x06labels\x18\b \x03(\tR\x06labelsB\b\n" +
+	"\x06_notesB\x06\n" +
+	"\x04_url\":\n" +
+	"\x14AddCliSecretResponse\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\"Q\n" +
+	"\x18AddMultiCliSecretRequest\x125\n" +
+	"\asecrets\x18\x01 \x03(\v2\x1b.cli.v1.AddCliSecretRequestR\asecrets\"S\n" +
+	"\x19AddMultiCliSecretResponse\x126\n" +
+	"\asecrets\x18\x01 \x03(\v2\x1c.cli.v1.AddCliSecretResponseR\asecrets\"g\n" +
+	"\x19GetCliCryptoConfigRequest\x12'\n" +
+	"\x0forganization_id\x18\x01 \x01(\tR\x0eorganizationId\x12!\n" +
+	"\fworkspace_id\x18\x02 \x01(\tR\vworkspaceId\"z\n" +
+	"\x1aGetCliCryptoConfigResponse\x12\x1c\n" +
+	"\talgorithm\x18\x01 \x01(\tR\talgorithm\x12\x1d\n" +
+	"\n" +
+	"public_key\x18\x02 \x01(\fR\tpublicKey\x12\x1f\n" +
+	"\vkey_version\x18\x03 \x01(\tR\n" +
+	"keyVersion2\xe0\x04\n" +
 	"\n" +
 	"CliService\x12Q\n" +
 	"\x14GetSecretVersionData\x12\x1b.cli.v1.GetCliSecretRequest\x1a\x1c.cli.v1.GetCliSecretResponse\x12R\n" +
 	"\x0fPutCliShareData\x12\x1e.cli.v1.PutCliShareDataRequest\x1a\x1f.cli.v1.PutCliShareDataResponse\x12R\n" +
 	"\x0fGetCliShareData\x12\x1e.cli.v1.GetCliShareDataRequest\x1a\x1f.cli.v1.GetCliShareDataResponse\x12X\n" +
-	"\x11CheckCliShareData\x12 .cli.v1.CheckCliShareDataRequest\x1a!.cli.v1.CheckCliShareDataResponseBI\n" +
+	"\x11CheckCliShareData\x12 .cli.v1.CheckCliShareDataRequest\x1a!.cli.v1.CheckCliShareDataResponse\x12I\n" +
+	"\fAddCliSecret\x12\x1b.cli.v1.AddCliSecretRequest\x1a\x1c.cli.v1.AddCliSecretResponse\x12X\n" +
+	"\x11AddMultiCliSecret\x12 .cli.v1.AddMultiCliSecretRequest\x1a!.cli.v1.AddMultiCliSecretResponse\x12X\n" +
+	"\x0fGetCryptoConfig\x12!.cli.v1.GetCliCryptoConfigRequest\x1a\".cli.v1.GetCliCryptoConfigResponseBI\n" +
 	"\x13io.ennote.cli.protoP\x01Z0github.com/ennote-io/ennote-cli/internal/grpc/pbb\x06proto3"
 
 var (
@@ -490,31 +872,45 @@ func file_api_proto_cli_v1_cli_proto_rawDescGZIP() []byte {
 	return file_api_proto_cli_v1_cli_proto_rawDescData
 }
 
-var file_api_proto_cli_v1_cli_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_api_proto_cli_v1_cli_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
 var file_api_proto_cli_v1_cli_proto_goTypes = []any{
-	(*GetCliSecretRequest)(nil),       // 0: cli.v1.GetCliSecretRequest
-	(*GetCliSecretResponse)(nil),      // 1: cli.v1.GetCliSecretResponse
-	(*PutCliShareDataRequest)(nil),    // 2: cli.v1.PutCliShareDataRequest
-	(*PutCliShareDataResponse)(nil),   // 3: cli.v1.PutCliShareDataResponse
-	(*GetCliShareDataRequest)(nil),    // 4: cli.v1.GetCliShareDataRequest
-	(*GetCliShareDataResponse)(nil),   // 5: cli.v1.GetCliShareDataResponse
-	(*CheckCliShareDataRequest)(nil),  // 6: cli.v1.CheckCliShareDataRequest
-	(*CheckCliShareDataResponse)(nil), // 7: cli.v1.CheckCliShareDataResponse
+	(*GetCliSecretRequest)(nil),        // 0: cli.v1.GetCliSecretRequest
+	(*GetCliSecretResponse)(nil),       // 1: cli.v1.GetCliSecretResponse
+	(*PutCliShareDataRequest)(nil),     // 2: cli.v1.PutCliShareDataRequest
+	(*PutCliShareDataResponse)(nil),    // 3: cli.v1.PutCliShareDataResponse
+	(*GetCliShareDataRequest)(nil),     // 4: cli.v1.GetCliShareDataRequest
+	(*GetCliShareDataResponse)(nil),    // 5: cli.v1.GetCliShareDataResponse
+	(*CheckCliShareDataRequest)(nil),   // 6: cli.v1.CheckCliShareDataRequest
+	(*CheckCliShareDataResponse)(nil),  // 7: cli.v1.CheckCliShareDataResponse
+	(*AddCliSecretRequest)(nil),        // 8: cli.v1.AddCliSecretRequest
+	(*AddCliSecretResponse)(nil),       // 9: cli.v1.AddCliSecretResponse
+	(*AddMultiCliSecretRequest)(nil),   // 10: cli.v1.AddMultiCliSecretRequest
+	(*AddMultiCliSecretResponse)(nil),  // 11: cli.v1.AddMultiCliSecretResponse
+	(*GetCliCryptoConfigRequest)(nil),  // 12: cli.v1.GetCliCryptoConfigRequest
+	(*GetCliCryptoConfigResponse)(nil), // 13: cli.v1.GetCliCryptoConfigResponse
 }
 var file_api_proto_cli_v1_cli_proto_depIdxs = []int32{
-	0, // 0: cli.v1.CliService.GetSecretVersionData:input_type -> cli.v1.GetCliSecretRequest
-	2, // 1: cli.v1.CliService.PutCliShareData:input_type -> cli.v1.PutCliShareDataRequest
-	4, // 2: cli.v1.CliService.GetCliShareData:input_type -> cli.v1.GetCliShareDataRequest
-	6, // 3: cli.v1.CliService.CheckCliShareData:input_type -> cli.v1.CheckCliShareDataRequest
-	1, // 4: cli.v1.CliService.GetSecretVersionData:output_type -> cli.v1.GetCliSecretResponse
-	3, // 5: cli.v1.CliService.PutCliShareData:output_type -> cli.v1.PutCliShareDataResponse
-	5, // 6: cli.v1.CliService.GetCliShareData:output_type -> cli.v1.GetCliShareDataResponse
-	7, // 7: cli.v1.CliService.CheckCliShareData:output_type -> cli.v1.CheckCliShareDataResponse
-	4, // [4:8] is the sub-list for method output_type
-	0, // [0:4] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	8,  // 0: cli.v1.AddMultiCliSecretRequest.secrets:type_name -> cli.v1.AddCliSecretRequest
+	9,  // 1: cli.v1.AddMultiCliSecretResponse.secrets:type_name -> cli.v1.AddCliSecretResponse
+	0,  // 2: cli.v1.CliService.GetSecretVersionData:input_type -> cli.v1.GetCliSecretRequest
+	2,  // 3: cli.v1.CliService.PutCliShareData:input_type -> cli.v1.PutCliShareDataRequest
+	4,  // 4: cli.v1.CliService.GetCliShareData:input_type -> cli.v1.GetCliShareDataRequest
+	6,  // 5: cli.v1.CliService.CheckCliShareData:input_type -> cli.v1.CheckCliShareDataRequest
+	8,  // 6: cli.v1.CliService.AddCliSecret:input_type -> cli.v1.AddCliSecretRequest
+	10, // 7: cli.v1.CliService.AddMultiCliSecret:input_type -> cli.v1.AddMultiCliSecretRequest
+	12, // 8: cli.v1.CliService.GetCryptoConfig:input_type -> cli.v1.GetCliCryptoConfigRequest
+	1,  // 9: cli.v1.CliService.GetSecretVersionData:output_type -> cli.v1.GetCliSecretResponse
+	3,  // 10: cli.v1.CliService.PutCliShareData:output_type -> cli.v1.PutCliShareDataResponse
+	5,  // 11: cli.v1.CliService.GetCliShareData:output_type -> cli.v1.GetCliShareDataResponse
+	7,  // 12: cli.v1.CliService.CheckCliShareData:output_type -> cli.v1.CheckCliShareDataResponse
+	9,  // 13: cli.v1.CliService.AddCliSecret:output_type -> cli.v1.AddCliSecretResponse
+	11, // 14: cli.v1.CliService.AddMultiCliSecret:output_type -> cli.v1.AddMultiCliSecretResponse
+	13, // 15: cli.v1.CliService.GetCryptoConfig:output_type -> cli.v1.GetCliCryptoConfigResponse
+	9,  // [9:16] is the sub-list for method output_type
+	2,  // [2:9] is the sub-list for method input_type
+	2,  // [2:2] is the sub-list for extension type_name
+	2,  // [2:2] is the sub-list for extension extendee
+	0,  // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_api_proto_cli_v1_cli_proto_init() }
@@ -525,13 +921,14 @@ func file_api_proto_cli_v1_cli_proto_init() {
 	file_api_proto_cli_v1_cli_proto_msgTypes[0].OneofWrappers = []any{}
 	file_api_proto_cli_v1_cli_proto_msgTypes[2].OneofWrappers = []any{}
 	file_api_proto_cli_v1_cli_proto_msgTypes[4].OneofWrappers = []any{}
+	file_api_proto_cli_v1_cli_proto_msgTypes[8].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_proto_cli_v1_cli_proto_rawDesc), len(file_api_proto_cli_v1_cli_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   14,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
