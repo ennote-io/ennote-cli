@@ -16,10 +16,12 @@ import (
 )
 
 type TokenAuth struct {
-	Keyring    config.SecureStorage
-	Version    string
-	RequireTLS bool
-	EnvToken   string
+	Keyring     config.SecureStorage
+	Version     string
+	RequireTLS  bool
+	EnvToken    string
+	OrgID       string
+	WorkspaceID string
 }
 
 func (t TokenAuth) GetRequestMetadata(ctx context.Context, uri ...string) (map[string]string, error) {
@@ -41,9 +43,11 @@ func (t TokenAuth) GetRequestMetadata(ctx context.Context, uri ...string) (map[s
 	ua := fmt.Sprintf("ennote-cli/%s (%s/%s)", t.Version, runtime.GOOS, runtime.GOARCH)
 
 	return map[string]string{
-		"authorization":      "Bearer " + token,
-		"ennote-client-type": "cli",
-		"user-agent":         ua,
+		"authorization":          "Bearer " + token,
+		"ennote-client-type":     "cli",
+		"ennote-organization-id": t.OrgID,
+		"ennote-workspace-id":    t.WorkspaceID,
+		"user-agent":             ua,
 	}, nil
 }
 
@@ -51,7 +55,7 @@ func (t TokenAuth) RequireTransportSecurity() bool {
 	return t.RequireTLS
 }
 
-func NewSecureClient(target string, keyring config.SecureStorage, version string, envToken string) (*grpc.ClientConn, error) {
+func NewSecureClient(target string, keyring config.SecureStorage, version string, envToken string, orgID string, workspaceID string) (*grpc.ClientConn, error) {
 	isLocalhost := target == "localhost" || target == "127.0.0.1" || strings.HasPrefix(target, "localhost:") || strings.HasPrefix(target, "127.0.0.1:")
 
 	var transportCreds credentials.TransportCredentials
@@ -66,10 +70,12 @@ func NewSecureClient(target string, keyring config.SecureStorage, version string
 	opts := []grpc.DialOption{
 		grpc.WithTransportCredentials(transportCreds),
 		grpc.WithPerRPCCredentials(TokenAuth{
-			Keyring:    keyring,
-			Version:    version,
-			RequireTLS: !isLocalhost,
-			EnvToken:   envToken,
+			Keyring:     keyring,
+			Version:     version,
+			RequireTLS:  !isLocalhost,
+			EnvToken:    envToken,
+			OrgID:       orgID,
+			WorkspaceID: workspaceID,
 		}),
 	}
 

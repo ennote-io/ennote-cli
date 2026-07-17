@@ -23,6 +23,9 @@ const (
 	CliService_PutCliShareData_FullMethodName      = "/cli.v1.CliService/PutCliShareData"
 	CliService_GetCliShareData_FullMethodName      = "/cli.v1.CliService/GetCliShareData"
 	CliService_CheckCliShareData_FullMethodName    = "/cli.v1.CliService/CheckCliShareData"
+	CliService_AddCliSecret_FullMethodName         = "/cli.v1.CliService/AddCliSecret"
+	CliService_AddMultiCliSecret_FullMethodName    = "/cli.v1.CliService/AddMultiCliSecret"
+	CliService_GetCryptoConfig_FullMethodName      = "/cli.v1.CliService/GetCryptoConfig"
 )
 
 // CliServiceClient is the client API for CliService service.
@@ -33,6 +36,9 @@ type CliServiceClient interface {
 	PutCliShareData(ctx context.Context, in *PutCliShareDataRequest, opts ...grpc.CallOption) (*PutCliShareDataResponse, error)
 	GetCliShareData(ctx context.Context, in *GetCliShareDataRequest, opts ...grpc.CallOption) (*GetCliShareDataResponse, error)
 	CheckCliShareData(ctx context.Context, in *CheckCliShareDataRequest, opts ...grpc.CallOption) (*CheckCliShareDataResponse, error)
+	AddCliSecret(ctx context.Context, in *AddCliSecretRequest, opts ...grpc.CallOption) (*AddCliSecretResponse, error)
+	AddMultiCliSecret(ctx context.Context, in *AddMultiCliSecretRequest, opts ...grpc.CallOption) (*AddMultiCliSecretResponse, error)
+	GetCryptoConfig(ctx context.Context, in *GetCliCryptoConfigRequest, opts ...grpc.CallOption) (*GetCliCryptoConfigResponse, error)
 }
 
 type cliServiceClient struct {
@@ -83,6 +89,36 @@ func (c *cliServiceClient) CheckCliShareData(ctx context.Context, in *CheckCliSh
 	return out, nil
 }
 
+func (c *cliServiceClient) AddCliSecret(ctx context.Context, in *AddCliSecretRequest, opts ...grpc.CallOption) (*AddCliSecretResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AddCliSecretResponse)
+	err := c.cc.Invoke(ctx, CliService_AddCliSecret_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *cliServiceClient) AddMultiCliSecret(ctx context.Context, in *AddMultiCliSecretRequest, opts ...grpc.CallOption) (*AddMultiCliSecretResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AddMultiCliSecretResponse)
+	err := c.cc.Invoke(ctx, CliService_AddMultiCliSecret_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *cliServiceClient) GetCryptoConfig(ctx context.Context, in *GetCliCryptoConfigRequest, opts ...grpc.CallOption) (*GetCliCryptoConfigResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetCliCryptoConfigResponse)
+	err := c.cc.Invoke(ctx, CliService_GetCryptoConfig_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CliServiceServer is the server API for CliService service.
 // All implementations must embed UnimplementedCliServiceServer
 // for forward compatibility.
@@ -91,6 +127,9 @@ type CliServiceServer interface {
 	PutCliShareData(context.Context, *PutCliShareDataRequest) (*PutCliShareDataResponse, error)
 	GetCliShareData(context.Context, *GetCliShareDataRequest) (*GetCliShareDataResponse, error)
 	CheckCliShareData(context.Context, *CheckCliShareDataRequest) (*CheckCliShareDataResponse, error)
+	AddCliSecret(context.Context, *AddCliSecretRequest) (*AddCliSecretResponse, error)
+	AddMultiCliSecret(context.Context, *AddMultiCliSecretRequest) (*AddMultiCliSecretResponse, error)
+	GetCryptoConfig(context.Context, *GetCliCryptoConfigRequest) (*GetCliCryptoConfigResponse, error)
 	mustEmbedUnimplementedCliServiceServer()
 }
 
@@ -112,6 +151,15 @@ func (UnimplementedCliServiceServer) GetCliShareData(context.Context, *GetCliSha
 }
 func (UnimplementedCliServiceServer) CheckCliShareData(context.Context, *CheckCliShareDataRequest) (*CheckCliShareDataResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CheckCliShareData not implemented")
+}
+func (UnimplementedCliServiceServer) AddCliSecret(context.Context, *AddCliSecretRequest) (*AddCliSecretResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method AddCliSecret not implemented")
+}
+func (UnimplementedCliServiceServer) AddMultiCliSecret(context.Context, *AddMultiCliSecretRequest) (*AddMultiCliSecretResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method AddMultiCliSecret not implemented")
+}
+func (UnimplementedCliServiceServer) GetCryptoConfig(context.Context, *GetCliCryptoConfigRequest) (*GetCliCryptoConfigResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetCryptoConfig not implemented")
 }
 func (UnimplementedCliServiceServer) mustEmbedUnimplementedCliServiceServer() {}
 func (UnimplementedCliServiceServer) testEmbeddedByValue()                    {}
@@ -206,6 +254,60 @@ func _CliService_CheckCliShareData_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CliService_AddCliSecret_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddCliSecretRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CliServiceServer).AddCliSecret(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CliService_AddCliSecret_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CliServiceServer).AddCliSecret(ctx, req.(*AddCliSecretRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CliService_AddMultiCliSecret_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddMultiCliSecretRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CliServiceServer).AddMultiCliSecret(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CliService_AddMultiCliSecret_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CliServiceServer).AddMultiCliSecret(ctx, req.(*AddMultiCliSecretRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CliService_GetCryptoConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCliCryptoConfigRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CliServiceServer).GetCryptoConfig(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CliService_GetCryptoConfig_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CliServiceServer).GetCryptoConfig(ctx, req.(*GetCliCryptoConfigRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // CliService_ServiceDesc is the grpc.ServiceDesc for CliService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -228,6 +330,18 @@ var CliService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CheckCliShareData",
 			Handler:    _CliService_CheckCliShareData_Handler,
+		},
+		{
+			MethodName: "AddCliSecret",
+			Handler:    _CliService_AddCliSecret_Handler,
+		},
+		{
+			MethodName: "AddMultiCliSecret",
+			Handler:    _CliService_AddMultiCliSecret_Handler,
+		},
+		{
+			MethodName: "GetCryptoConfig",
+			Handler:    _CliService_GetCryptoConfig_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
