@@ -1,0 +1,95 @@
+syntax = "proto3";
+
+package cli.v1;
+
+option java_package = "io.ennote.cli.proto";
+option java_multiple_files = true;
+option go_package = "github.com/ennote-io/ennote-cli/internal/grpc/pb";
+
+service CliService {
+  rpc GetSecretVersionData (GetCliSecretRequest) returns (GetCliSecretResponse);
+
+  rpc PutCliShareData (PutCliShareDataRequest) returns (PutCliShareDataResponse);
+  rpc GetCliShareData (GetCliShareDataRequest) returns (GetCliShareDataResponse);
+  rpc CheckCliShareData (CheckCliShareDataRequest) returns (CheckCliShareDataResponse);
+
+  rpc AddCliSecret (AddCliSecretRequest) returns (AddCliSecretResponse);
+  rpc AddMultiCliSecret (AddMultiCliSecretRequest) returns (AddMultiCliSecretResponse);
+
+  rpc GetCryptoConfig (GetCliCryptoConfigRequest) returns (GetCliCryptoConfigResponse);
+}
+
+message GetCliSecretRequest {
+  string session_public_key = 1;
+  string secret_name = 2;
+  optional int32 secret_version_number = 3;
+  string workspace_id = 4;
+  string organization_id = 5;
+}
+
+message GetCliSecretResponse {
+  bytes encrypted_blob = 1;
+  bytes session_wrapped_key = 2;
+}
+
+message PutCliShareDataRequest {
+  string encrypted_blob = 1;
+  int64 ttl = 2;
+  optional string password_hash = 3;
+}
+
+message PutCliShareDataResponse {
+  string id = 1;
+}
+
+message GetCliShareDataRequest {
+  string id = 1;
+  optional string password_hash = 2;
+}
+
+message GetCliShareDataResponse {
+  string encrypted_blob = 1;
+}
+
+message CheckCliShareDataRequest {
+  string id = 1;
+}
+
+message CheckCliShareDataResponse {
+  bool is_password_protected = 1;
+}
+
+message AddCliSecretRequest {
+  string name = 1;
+  string workspace_id = 2;
+  string organization_id = 3;
+  string type = 4;
+  string encrypted_blob = 5;
+  optional string notes = 6;
+  optional string url = 7;
+  repeated string labels = 8;
+}
+
+message AddCliSecretResponse {
+  string id = 1;
+  string name = 2;
+}
+
+message AddMultiCliSecretRequest {
+  repeated AddCliSecretRequest secrets = 1;
+}
+
+message AddMultiCliSecretResponse {
+  repeated AddCliSecretResponse secrets = 1;
+}
+
+message GetCliCryptoConfigRequest {
+  string organization_id = 1;
+  string workspace_id = 2;
+}
+
+message GetCliCryptoConfigResponse {
+  string algorithm = 1;
+  bytes public_key = 2;
+  string key_version = 3;
+}
