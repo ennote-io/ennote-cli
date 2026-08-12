@@ -29,6 +29,7 @@ builds:
       - -s -w
       - -X github.com/ennote-io/ennote-cli/internal/config.Version={{.Version}}
       - -X github.com/ennote-io/ennote-cli/internal/config.BackendURL={{.Env.BACKEND_URL}}
+      - -X github.com/ennote-io/ennote-cli/internal/config.AuthURL={{.Env.AUTH_URL}}
       - -X github.com/ennote-io/ennote-cli/internal/config.RedirectURI=http://127.0.0.1:8888/callback
 
 archives:
