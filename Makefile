@@ -14,6 +14,7 @@ build: generate
 	go build -ldflags="\
 		-s -w \
 		-X '$(PACKAGE).BackendURL=$(BACKEND_URL)' \
+		-X '$(PACKAGE).AuthURL=$(AUTH_URL)' \
 		-X '$(PACKAGE).RedirectURI=http://127.0.0.1:8888/callback'" \
 		-o bin/$(BINARY_NAME) cmd/ennote/main.go
 
