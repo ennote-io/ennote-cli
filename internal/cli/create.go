@@ -3,12 +3,10 @@ package cli
 import (
 	"bufio"
 	"context"
-	"encoding/base32"
 	"encoding/json"
 	"fmt"
 	"io"
 	"os"
-	"regexp"
 	"strings"
 	"time"
 
@@ -16,21 +14,9 @@ import (
 	"github.com/ennote-io/ennote-cli/internal/crypto"
 	"github.com/ennote-io/ennote-cli/internal/grpc"
 	clipb "github.com/ennote-io/ennote-cli/internal/grpc/pb"
+	"github.com/ennote-io/ennote-cli/internal/validation"
 	"github.com/spf13/cobra"
 )
-
-var (
-	urlRegex  = regexp.MustCompile(`(?i)^(https?://)?((([a-z\d]([a-z\d-]*[a-z\d])*)\.)+[a-z]{2,}|((\d{1,3}\.){3}\d{1,3}))(:\d+)?(/[-a-z\d%_.~+]*)*(\?[;&a-z\d%_.~+=-]*)?(#[-a-z\d_]*)?$`)
-	ipv4Regex = regexp.MustCompile(`^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[0-9][0-9]?)(\.|-)){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[0-9][0-9]?)$`)
-	ipv6Regex = regexp.MustCompile(`^(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))$`)
-)
-
-func validateUrlOrIp(value string) error {
-	if urlRegex.MatchString(value) || ipv4Regex.MatchString(value) || ipv6Regex.MatchString(value) {
-		return nil
-	}
-	return fmt.Errorf("please enter a valid URL, IPv4, or IPv6 address")
-}
 
 var secretCreateCmd = &cobra.Command{
 	Use:   "create <secret-name>",
@@ -56,7 +42,7 @@ func runSecretCreate(cmd *cobra.Command, args []string) error {
 
 	url, _ := cmd.Flags().GetString("url")
 	if url != "" {
-		if err := validateUrlOrIp(url); err != nil {
+		if err := validation.ValidateEndpoint(url); err != nil {
 			return err
 		}
 	}
@@ -86,14 +72,9 @@ func runSecretCreate(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("--value flag is required for TWO_FACTOR type")
 		}
 
-		cleanSecret := strings.ToUpper(strings.ReplaceAll(val, " ", ""))
-		paddedSecret := cleanSecret
-		if padLen := len(cleanSecret) % 8; padLen != 0 {
-			paddedSecret += strings.Repeat("=", 8-padLen)
-		}
-
-		if _, err := base32.StdEncoding.DecodeString(paddedSecret); err != nil {
-			return fmt.Errorf("invalid Base32 secret key format")
+		cleanSecret, err := validation.ParseBase32(val)
+		if err != nil {
+			return err
 		}
 
 		payloadBytes, err = json.Marshal(map[string]string{
