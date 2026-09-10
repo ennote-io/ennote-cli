@@ -46,7 +46,7 @@ func runSecretImport(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return fmt.Errorf("failed to open export file: %w", err)
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	stat, err := f.Stat()
 	if err != nil {
@@ -123,7 +123,7 @@ func runSecretImport(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return fmt.Errorf("failed to initialize gRPC client: %w", err)
 	}
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	client := clipb.NewCliServiceClient(conn)
 

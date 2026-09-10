@@ -59,7 +59,7 @@ func createSyntheticTestZip(t *testing.T) string {
 	if err != nil {
 		t.Fatalf("failed to create temp zip: %v", err)
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	zw := zip.NewWriter(f)
 	aw, _ := zw.Create("export.attributes")

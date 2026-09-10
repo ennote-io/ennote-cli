@@ -153,7 +153,7 @@ func (p *OnePUXImporter) extractJSON(r io.ReaderAt, size int64) ([]byte, error) 
 				if err != nil {
 					return nil, fmt.Errorf("failed to open export.data inside zip: %w", err)
 				}
-				defer rc.Close()
+				defer func() { _ = rc.Close() }()
 				return io.ReadAll(rc)
 			}
 		}

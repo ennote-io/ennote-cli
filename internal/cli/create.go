@@ -72,7 +72,8 @@ func runSecretCreate(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("--value flag is required for TWO_FACTOR type")
 		}
 
-		cleanSecret, err := validation.ParseBase32(val)
+		var cleanSecret string
+		cleanSecret, err = validation.ParseBase32(val)
 		if err != nil {
 			return err
 		}
@@ -96,7 +97,8 @@ func runSecretCreate(cmd *cobra.Command, args []string) error {
 		})
 
 	case "KEYS_VALUES":
-		envMap, err := parseEnvFromStdin()
+		var envMap map[string]string
+		envMap, err = parseEnvFromStdin()
 		if err != nil {
 			return fmt.Errorf("failed to parse KEYS_VALUES from stdin: %w", err)
 		}
@@ -123,7 +125,7 @@ func runSecretCreate(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return fmt.Errorf("failed to initialize gRPC client: %w", err)
 	}
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	client := clipb.NewCliServiceClient(conn)
 
