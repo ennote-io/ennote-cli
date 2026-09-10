@@ -1,4 +1,4 @@
-.PHONY: build snapshot release clean generate
+.PHONY: build snapshot release clean generate test vet lint fmt tidy
 
 export PATH := $(shell go env GOPATH)/bin:$(PATH)
 
@@ -32,3 +32,18 @@ generate:
 	       --go_opt=module=github.com/ennote-io/ennote-cli \
 	       --go-grpc_out=. --go-grpc_opt=module=github.com/ennote-io/ennote-cli \
 	       api/proto/cli/v1/cli.proto
+
+test:
+	go test -race -coverprofile=coverage.txt -covermode=atomic ./...
+
+vet:
+	go vet ./...
+
+lint:
+	golangci-lint run
+
+fmt:
+	go fmt ./...
+
+tidy:
+	go mod tidy
