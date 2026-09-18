@@ -42,6 +42,29 @@ func TestValidateEndpoint(t *testing.T) {
 	}
 }
 
+func TestIsEnvName(t *testing.T) {
+	tests := []struct {
+		input string
+		want  bool
+	}{
+		{"STRIPE_KEY", true},
+		{"_internal", true},
+		{"DB2_HOST", true},
+		{"2FA_SEED", false},
+		{"first name", false},
+		{"first-name", false},
+		{"note: a", false},
+		{"", false},
+		{"CLÉ", false},
+	}
+
+	for _, tt := range tests {
+		if got := IsEnvName(tt.input); got != tt.want {
+			t.Errorf("IsEnvName(%q) = %v, want %v", tt.input, got, tt.want)
+		}
+	}
+}
+
 func TestNormalizeBase32(t *testing.T) {
 	tests := []struct {
 		name  string

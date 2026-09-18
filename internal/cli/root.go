@@ -61,14 +61,3 @@ func initConfig() {
 		}
 	}
 }
-
-func GetResolvedContext() (string, string, error) {
-	orgID := viper.GetString("organization_id")
-	workspaceID := viper.GetString("workspace_id")
-
-	if orgID == "" || workspaceID == "" {
-		return "", "", fmt.Errorf("organization-id and workspace-id are required. Set them via flags, ENNOTE_ environment variables, or 'ennote config set'")
-	}
-
-	return orgID, workspaceID, nil
-}
