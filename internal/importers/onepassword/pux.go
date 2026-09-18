@@ -1,4 +1,6 @@
-package importers
+// Package onepassword parses 1Password exports: 1PUX archives (and their raw
+// export.data JSON) plus the CSV layout the desktop app writes.
+package onepassword
 
 import (
 	"archive/zip"
@@ -6,18 +8,18 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"net/url"
 	"strings"
 	"time"
 
+	"github.com/ennote-io/ennote-cli/internal/importers"
 	"github.com/ennote-io/ennote-cli/internal/validation"
 )
 
-// OnePUXImporter parses 1Password 1PUX zip archives and raw export.data JSON files.
-type OnePUXImporter struct{}
+// PUXImporter parses 1Password 1PUX zip archives and raw export.data JSON files.
+type PUXImporter struct{}
 
-func New1PUXImporter() *OnePUXImporter {
-	return &OnePUXImporter{}
+func NewPUXImporter() *PUXImporter {
+	return &PUXImporter{}
 }
 
 // 1PUX Data structures for unmarshaling
@@ -54,6 +56,7 @@ type onePuxItem struct {
 	UUID         string         `json:"uuid"`
 	CategoryUUID string         `json:"categoryUuid"`
 	State        string         `json:"state"`
+	FavIndex     int            `json:"favIndex"`
 	Overview     onePuxOverview `json:"overview"`
 	Details      onePuxDetails  `json:"details"`
 }
@@ -96,7 +99,12 @@ type onePuxField struct {
 	Value map[string]interface{} `json:"value"`
 }
 
-func (p *OnePUXImporter) Parse(r io.ReaderAt, size int64, opts ImportOptions) ([]ImportedSecret, error) {
+// ProviderName identifies the resolved source format for CLI output.
+func (p *PUXImporter) ProviderName() string {
+	return "1Password 1PUX"
+}
+
+func (p *PUXImporter) Parse(r io.ReaderAt, size int64, opts importers.ImportOptions) (*importers.ImportResult, error) {
 	jsonData, err := p.extractJSON(r, size)
 	if err != nil {
 		return nil, fmt.Errorf("failed to extract 1PUX data: %w", err)
@@ -107,14 +115,15 @@ func (p *OnePUXImporter) Parse(r io.ReaderAt, size int64, opts ImportOptions) ([
 		return nil, fmt.Errorf("failed to parse 1PUX JSON: %w", err)
 	}
 
-	var results []ImportedSecret
+	var results []importers.ImportedSecret
+	var warnings []string
 
 	for _, account := range export.Accounts {
 		for _, vault := range account.Vaults {
-			if opts.VaultFilter != "" {
-				if !strings.EqualFold(vault.Attrs.Name, opts.VaultFilter) && !strings.EqualFold(vault.Attrs.UUID, opts.VaultFilter) {
-					continue
-				}
+			// Vault names match hierarchically; a UUID is an exact identifier.
+			if !importers.MatchesScope(vault.Attrs.Name, opts.VaultFilter) &&
+				!strings.EqualFold(vault.Attrs.UUID, opts.VaultFilter) {
+				continue
 			}
 
 			for _, item := range vault.Items {
@@ -122,23 +131,22 @@ func (p *OnePUXImporter) Parse(r io.ReaderAt, size int64, opts ImportOptions) ([
 					continue
 				}
 
-				secrets, err := p.normalizeItem(item)
-				if err != nil {
-					continue
-				}
+				secrets, itemWarnings := p.normalizeItem(item, vault.Attrs.Name)
 				results = append(results, secrets...)
+				warnings = append(warnings, itemWarnings...)
 			}
 		}
 	}
 
+	// Warnings explain which items were dropped, so they travel with the error.
+	result := &importers.ImportResult{Secrets: results, Warnings: warnings}
 	if len(results) == 0 {
-		return nil, ErrEmptyExport
+		return result, importers.ErrEmptyExport
 	}
-
-	return results, nil
+	return result, nil
 }
 
-func (p *OnePUXImporter) extractJSON(r io.ReaderAt, size int64) ([]byte, error) {
+func (p *PUXImporter) extractJSON(r io.ReaderAt, size int64) ([]byte, error) {
 	// Check if this is a ZIP archive by inspecting magic header bytes
 	header := make([]byte, 4)
 	if _, err := r.ReadAt(header, 0); err == nil && bytes.Equal(header, []byte("PK\x03\x04")) {
@@ -164,8 +172,12 @@ func (p *OnePUXImporter) extractJSON(r io.ReaderAt, size int64) ([]byte, error) 
 	return io.ReadAll(io.NewSectionReader(r, 0, size))
 }
 
-func (p *OnePUXImporter) normalizeItem(item onePuxItem) ([]ImportedSecret, error) {
-	var secrets []ImportedSecret
+// normalizeItem maps one 1PUX item to its Ennote secrets. vaultName becomes the
+// first label, as folder and grouping do in the CSV providers. An item that maps
+// to nothing yields a warning, not an error.
+func (p *PUXImporter) normalizeItem(item onePuxItem, vaultName string) ([]importers.ImportedSecret, []string) {
+	var secrets []importers.ImportedSecret
+	var warnings []string
 
 	title := strings.TrimSpace(item.Overview.Title)
 	if title == "" {
@@ -182,17 +194,24 @@ func (p *OnePUXImporter) normalizeItem(item onePuxItem) ([]ImportedSecret, error
 		targetURL = item.Overview.URLs[0].URL
 	}
 
-	labels := make([]string, 0, len(item.Overview.Tags))
+	// Account-level attrs (accountName, email, uuid, domain) describe the
+	// exporting identity, not a secret, and are ignored.
+	labels := make([]string, 0, len(item.Overview.Tags)+2)
+	if vault := strings.TrimSpace(vaultName); vault != "" {
+		labels = append(labels, vault)
+	}
 	for _, tag := range item.Overview.Tags {
-		t := strings.TrimSpace(tag)
-		if t != "" {
+		if t := strings.TrimSpace(tag); t != "" {
 			labels = append(labels, t)
 		}
+	}
+	if item.FavIndex > 0 {
+		labels = append(labels, "favorite")
 	}
 
 	notes := strings.TrimSpace(item.Details.NotesPlain)
 
-	var primarySecret *ImportedSecret
+	var primarySecret *importers.ImportedSecret
 
 	switch item.CategoryUUID {
 	case "001", "005": // Login or Password
@@ -203,9 +222,9 @@ func (p *OnePUXImporter) normalizeItem(item onePuxItem) ([]ImportedSecret, error
 				"password": password,
 			})
 			if err == nil {
-				primarySecret = &ImportedSecret{
+				primarySecret = &importers.ImportedSecret{
 					Name:    title,
-					Type:    TypeLoginPassword,
+					Type:    importers.TypeLoginPassword,
 					URL:     targetURL,
 					Labels:  labels,
 					Notes:   notes,
@@ -215,33 +234,36 @@ func (p *OnePUXImporter) normalizeItem(item onePuxItem) ([]ImportedSecret, error
 		}
 
 	case "003": // Secure Note
-		payloadBytes, err := json.Marshal(map[string]string{
-			"securityNotes": notes,
-		})
-		if err == nil {
-			primarySecret = &ImportedSecret{
-				Name:    title,
-				Type:    TypeSecurityNotes,
-				URL:     targetURL,
-				Labels:  labels,
-				Notes:   notes,
-				Payload: payloadBytes,
+		// An empty note body is not a secret: fall through to the section and
+		// notes fallbacks below, as the CSV providers do.
+		if notes != "" {
+			payloadBytes, err := json.Marshal(map[string]string{
+				"securityNotes": notes,
+			})
+			if err == nil {
+				primarySecret = &importers.ImportedSecret{
+					Name:    title,
+					Type:    importers.TypeSecurityNotes,
+					URL:     targetURL,
+					Labels:  labels,
+					Notes:   notes,
+					Payload: payloadBytes,
+				}
 			}
 		}
 	}
 
 	if primarySecret == nil {
-		// For Identity (004), Database (102), Server (109), Software License (100), etc.
-		// Or fallback for logins/notes with complex sections:
+		// Identity (004), Database (102), Server (109), Software License (100),
+		// and logins or notes whose content lives in sections.
 		kvMap := p.flattenSections(item.Details.Sections)
 		if len(kvMap) > 0 {
-			payloadBytes, err := json.Marshal(map[string]interface{}{
-				"keysValues": kvMap,
-			})
+			payloadBytes, kvWarnings, err := importers.BuildKeysValues(title, kvMap)
+			warnings = append(warnings, kvWarnings...)
 			if err == nil {
-				primarySecret = &ImportedSecret{
+				primarySecret = &importers.ImportedSecret{
 					Name:    title,
-					Type:    TypeKeysValues,
+					Type:    importers.TypeKeysValues,
 					URL:     targetURL,
 					Labels:  labels,
 					Notes:   notes,
@@ -257,9 +279,9 @@ func (p *OnePUXImporter) normalizeItem(item onePuxItem) ([]ImportedSecret, error
 			"securityNotes": notes,
 		})
 		if err == nil {
-			primarySecret = &ImportedSecret{
+			primarySecret = &importers.ImportedSecret{
 				Name:    title,
-				Type:    TypeSecurityNotes,
+				Type:    importers.TypeSecurityNotes,
 				URL:     targetURL,
 				Labels:  labels,
 				Notes:   notes,
@@ -272,32 +294,32 @@ func (p *OnePUXImporter) normalizeItem(item onePuxItem) ([]ImportedSecret, error
 		secrets = append(secrets, *primarySecret)
 	}
 
-	// Check for embedded TOTP seeds and append as companion 2FA secret
-	totpSecret := p.extractTOTP(item)
-	if totpSecret != "" {
-		totpPayload, err := json.Marshal(map[string]string{
-			"securityCode": totpSecret,
-		})
-		if err == nil {
-			secrets = append(secrets, ImportedSecret{
-				Name:    fmt.Sprintf("%s 2FA", title),
-				Type:    TypeTwoFactor,
-				URL:     targetURL,
-				Labels:  labels,
-				Notes:   notes,
-				Payload: totpPayload,
-			})
-		}
+	// Shared with the CSV providers, so a malformed seed is reported. Every
+	// diagnostic names its vault: a title alone is ambiguous across vaults.
+	totp, err := importers.BuildCompanionTOTP(title, p.rawTOTP(item), targetURL, notes, labels, primarySecret != nil)
+	if err != nil {
+		warnings = append(warnings, vaultPrefix(vaultName)+err.Error())
+	} else if totp != nil {
+		secrets = append(secrets, *totp)
 	}
 
-	if len(secrets) > 0 {
-		return secrets, nil
+	if len(secrets) == 0 {
+		warnings = append(warnings, fmt.Sprintf("%sitem %q (category %s) maps to no secret type, skipped", vaultPrefix(vaultName), title, item.CategoryUUID))
 	}
 
-	return nil, fmt.Errorf("unable to map item %q to any secret type", title)
+	return secrets, warnings
 }
 
-func (p *OnePUXImporter) extractLoginPassword(item onePuxItem) (username string, password string) {
+// vaultPrefix qualifies a diagnostic with its vault. Messages that already name
+// the item need only this prefix.
+func vaultPrefix(vaultName string) string {
+	if vault := strings.TrimSpace(vaultName); vault != "" {
+		return fmt.Sprintf("vault %q: ", vault)
+	}
+	return ""
+}
+
+func (p *PUXImporter) extractLoginPassword(item onePuxItem) (username string, password string) {
 	for _, field := range item.Details.LoginFields {
 		val := strings.TrimSpace(field.Value)
 		if val == "" {
@@ -339,21 +361,34 @@ func (p *OnePUXImporter) extractLoginPassword(item onePuxItem) (username string,
 	return username, password
 }
 
-func (p *OnePUXImporter) extractTOTP(item onePuxItem) string {
-	// Search in login fields
+// rawTOTP returns the raw seed of the first TOTP-bearing field, leaving
+// validation to importers.ExtractTOTP. A candidate that parses wins; if none
+// parse, the first is returned so the failure is reported.
+func (p *PUXImporter) rawTOTP(item onePuxItem) string {
+	first := ""
+	consider := func(val string) bool {
+		if first == "" {
+			first = val
+		}
+		if seed, err := importers.ExtractTOTP(val); err == nil && seed != "" {
+			first = val
+			return true
+		}
+		return false
+	}
+
 	for _, field := range item.Details.LoginFields {
 		val := strings.TrimSpace(field.Value)
 		if val == "" {
 			continue
 		}
 		if field.Designation == "totp" || strings.Contains(strings.ToLower(field.Name), "totp") || strings.HasPrefix(val, "otpauth://") {
-			if secret := parseTOTPSecret(val); secret != "" {
-				return secret
+			if consider(val) {
+				return first
 			}
 		}
 	}
 
-	// Search in sections
 	for _, section := range item.Details.Sections {
 		for _, field := range section.Fields {
 			val := p.extractFieldValueString(field.Value)
@@ -366,36 +401,17 @@ func (p *OnePUXImporter) extractTOTP(item onePuxItem) string {
 
 			if strings.Contains(lowerTitle, "one-time password") || strings.Contains(lowerTitle, "totp") || strings.Contains(lowerTitle, "2fa") ||
 				strings.Contains(lowerID, "totp") || strings.HasPrefix(val, "otpauth://") {
-				if secret := parseTOTPSecret(val); secret != "" {
-					return secret
+				if consider(val) {
+					return first
 				}
 			}
 		}
 	}
 
-	return ""
+	return first
 }
 
-func parseTOTPSecret(rawVal string) string {
-	rawVal = strings.TrimSpace(rawVal)
-	if strings.HasPrefix(rawVal, "otpauth://") {
-		u, err := url.Parse(rawVal)
-		if err == nil {
-			secretParam := u.Query().Get("secret")
-			if secretParam != "" {
-				rawVal = secretParam
-			}
-		}
-	}
-
-	cleanSecret, err := validation.ParseBase32(rawVal)
-	if err != nil {
-		return ""
-	}
-	return cleanSecret
-}
-
-func (p *OnePUXImporter) flattenSections(sections []onePuxSection) map[string]string {
+func (p *PUXImporter) flattenSections(sections []onePuxSection) map[string]string {
 	result := make(map[string]string)
 
 	for _, section := range sections {
@@ -425,7 +441,7 @@ func (p *OnePUXImporter) flattenSections(sections []onePuxSection) map[string]st
 	return result
 }
 
-func (p *OnePUXImporter) extractFieldValueString(valMap map[string]interface{}) string {
+func (p *PUXImporter) extractFieldValueString(valMap map[string]interface{}) string {
 	if valMap == nil {
 		return ""
 	}
@@ -468,8 +484,8 @@ func (p *OnePUXImporter) extractFieldValueString(valMap map[string]interface{}) 
 			}
 
 		default:
-			if strVal, ok := v.(string); ok && strVal != "" {
-				return strings.TrimSpace(strVal)
+			if flat := strings.TrimSpace(importers.FlattenValue(v)); flat != "" {
+				return flat
 			}
 		}
 	}

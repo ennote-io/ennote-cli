@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"bufio"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -14,6 +13,7 @@ import (
 	"github.com/ennote-io/ennote-cli/internal/crypto"
 	"github.com/ennote-io/ennote-cli/internal/grpc"
 	clipb "github.com/ennote-io/ennote-cli/internal/grpc/pb"
+	"github.com/ennote-io/ennote-cli/internal/kvtext"
 	"github.com/ennote-io/ennote-cli/internal/validation"
 	"github.com/spf13/cobra"
 )
@@ -199,35 +199,17 @@ func parseEnvFromStdin() (map[string]string, error) {
 		return nil, fmt.Errorf("no input detected on stdin")
 	}
 
-	envMap := make(map[string]string)
-	scanner := bufio.NewScanner(os.Stdin)
-
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
-		if line == "" || strings.HasPrefix(line, "#") {
-			continue
-		}
-
-		parts := strings.SplitN(line, "=", 2)
-		if len(parts) == 2 {
-			key := strings.TrimSpace(parts[0])
-			val := strings.TrimSpace(parts[1])
-			val = strings.Trim(val, `"'`)
-			envMap[key] = val
-		}
-	}
-
-	if err := scanner.Err(); err != nil {
+	raw, err := io.ReadAll(os.Stdin)
+	if err != nil {
 		return nil, err
 	}
-	return envMap, nil
+
+	return kvtext.ParseDotenv(string(raw)), nil
 }
 
 func init() {
 	secretCmd.AddCommand(secretCreateCmd)
 
-	secretCreateCmd.Flags().String("organization-id", "", "Target Organization ID")
-	secretCreateCmd.Flags().String("workspace-id", "", "Target Workspace ID")
 	secretCreateCmd.Flags().String("type", "", "Type of secret (LOGIN_PASSWORD, KEYS_VALUES, SECURITY_NOTES, TWO_FACTOR)")
 	_ = secretCreateCmd.MarkFlagRequired("type")
 

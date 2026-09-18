@@ -1,11 +1,26 @@
-package importers
+package onepassword
 
 import (
 	"archive/zip"
 	"bytes"
 	"encoding/json"
+	"errors"
+	"slices"
+	"strings"
 	"testing"
+
+	"github.com/ennote-io/ennote-cli/internal/importers"
 )
+
+func decodeKeysValues(t *testing.T, payload []byte) map[string]string {
+	t.Helper()
+
+	var decoded map[string]map[string]string
+	if err := json.Unmarshal(payload, &decoded); err != nil {
+		t.Fatalf("payload is not a flat string map: %v (payload=%s)", err, payload)
+	}
+	return decoded["keysValues"]
+}
 
 func createSynthetic1PUXJSON() []byte {
 	data := map[string]interface{}{
@@ -29,6 +44,7 @@ func createSynthetic1PUXJSON() []byte {
 								"uuid":         "item-login-1",
 								"categoryUuid": "001",
 								"state":        "active",
+								"favIndex":     1,
 								"overview": map[string]interface{}{
 									"title": "Example Login",
 									"url":   "https://login.example.com",
@@ -103,6 +119,14 @@ func createSynthetic1PUXJSON() []byte {
 															"country": "USA",
 														},
 													},
+												},
+												{
+													"title": "EXPIRY",
+													"value": map[string]interface{}{"monthYear": 202401},
+												},
+												{
+													"title": "SSH_KEY",
+													"value": map[string]interface{}{"sshKey": map[string]interface{}{"privateKey": "abc"}},
 												},
 											},
 										},
@@ -214,12 +238,13 @@ func createSynthetic1PUXZip(t *testing.T) []byte {
 func TestOnePUXImporter_RawJSON(t *testing.T) {
 	jsonData := createSynthetic1PUXJSON()
 	r := bytes.NewReader(jsonData)
-	importer := New1PUXImporter()
+	importer := NewPUXImporter()
 
-	secrets, err := importer.Parse(r, int64(len(jsonData)), ImportOptions{})
+	res, err := importer.Parse(r, int64(len(jsonData)), importers.ImportOptions{})
 	if err != nil {
 		t.Fatalf("unexpected error parsing 1PUX raw JSON: %v", err)
 	}
+	secrets := res.Secrets
 
 	// Expected:
 	// From Personal vault:
@@ -237,7 +262,7 @@ func TestOnePUXImporter_RawJSON(t *testing.T) {
 
 	// Verify Login secret
 	loginSecret := secrets[0]
-	if loginSecret.Name != "Example Login" || loginSecret.Type != TypeLoginPassword {
+	if loginSecret.Name != "Example Login" || loginSecret.Type != importers.TypeLoginPassword {
 		t.Errorf("unexpected login secret: %+v", loginSecret)
 	}
 	if loginSecret.URL != "https://login.example.com" {
@@ -253,7 +278,7 @@ func TestOnePUXImporter_RawJSON(t *testing.T) {
 
 	// Verify Companion 2FA secret
 	totpSecret := secrets[1]
-	if totpSecret.Name != "Example Login 2FA" || totpSecret.Type != TypeTwoFactor {
+	if totpSecret.Name != "Example Login 2FA" || totpSecret.Type != importers.TypeTwoFactor {
 		t.Errorf("unexpected TOTP secret: %+v", totpSecret)
 	}
 	var totpPayload map[string]string
@@ -266,7 +291,7 @@ func TestOnePUXImporter_RawJSON(t *testing.T) {
 
 	// Verify Secure Note
 	noteSecret := secrets[2]
-	if noteSecret.Name != "Production Instructions" || noteSecret.Type != TypeSecurityNotes {
+	if noteSecret.Name != "Production Instructions" || noteSecret.Type != importers.TypeSecurityNotes {
 		t.Errorf("unexpected note secret: %+v", noteSecret)
 	}
 	var notePayload map[string]string
@@ -277,51 +302,112 @@ func TestOnePUXImporter_RawJSON(t *testing.T) {
 		t.Errorf("unexpected securityNotes content: %q", notePayload["securityNotes"])
 	}
 
-	// Verify Identity (KEYS_VALUES)
+	// Verify Identity (KEYS_VALUES): flat string map, keys preserved verbatim
 	identitySecret := secrets[3]
-	if identitySecret.Name != "Test Identity" || identitySecret.Type != TypeKeysValues {
+	if identitySecret.Name != "Test Identity" || identitySecret.Type != importers.TypeKeysValues {
 		t.Errorf("unexpected identity secret: %+v", identitySecret)
 	}
-	var identityPayload map[string]map[string]interface{}
-	if err := json.Unmarshal(identitySecret.Payload, &identityPayload); err != nil {
-		t.Fatalf("failed to unmarshal identity payload: %v", err)
-	}
-	kv := identityPayload["keysValues"]
+	kv := decodeKeysValues(t, identitySecret.Payload)
 	if kv["first name"] != "John" || kv["last name"] != "Doe" {
 		t.Errorf("unexpected identity keysValues: %+v", kv)
 	}
 	if kv["home address"] != "123 Main St, Springfield, IL, 62701, USA" {
 		t.Errorf("unexpected formatted address: %q", kv["home address"])
 	}
+	if kv["EXPIRY"] != "202401" {
+		t.Errorf("expected numeric field coerced to string, got %q", kv["EXPIRY"])
+	}
+	if kv["SSH_KEY"] != `{"privateKey":"abc"}` {
+		t.Errorf("expected structured field compact-JSON stringified, got %q", kv["SSH_KEY"])
+	}
+
+	// Keys 1Password generates with spaces import cleanly; a warning here would
+	// fire on every Identity item without telling the user anything actionable.
+	if len(res.Warnings) != 0 {
+		t.Errorf("expected no warnings for a clean 1PUX import, got %v", res.Warnings)
+	}
 }
 
 func TestOnePUXImporter_ZipArchive(t *testing.T) {
 	zipData := createSynthetic1PUXZip(t)
 	r := bytes.NewReader(zipData)
-	importer := New1PUXImporter()
+	importer := NewPUXImporter()
 
-	secrets, err := importer.Parse(r, int64(len(zipData)), ImportOptions{})
+	res, err := importer.Parse(r, int64(len(zipData)), importers.ImportOptions{})
 	if err != nil {
 		t.Fatalf("unexpected error parsing 1PUX zip: %v", err)
 	}
+	secrets := res.Secrets
 
 	if len(secrets) != 6 {
 		t.Fatalf("expected 6 secrets from zip, got %d", len(secrets))
 	}
 }
 
+func TestOnePUXImporter_LabelsCarryVaultAndFavorite(t *testing.T) {
+	jsonData := createSynthetic1PUXJSON()
+	r := bytes.NewReader(jsonData)
+
+	res, err := NewPUXImporter().Parse(r, int64(len(jsonData)), importers.ImportOptions{})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	byName := make(map[string][]string, len(res.Secrets))
+	for _, s := range res.Secrets {
+		byName[s.Name] = s.Labels
+	}
+
+	// Vault name first, then item tags, then favorite - the ordering the CSV
+	// providers use for folder/grouping, tags and favorites.
+	if got := byName["Example Login"]; !slices.Equal(got, []string{"Personal", "prod", "web", "favorite"}) {
+		t.Errorf("login labels = %v, want vault, tags and favorite", got)
+	}
+	// The 2FA companion inherits its parent's labels.
+	if got := byName["Example Login 2FA"]; !slices.Equal(got, []string{"Personal", "prod", "web", "favorite"}) {
+		t.Errorf("companion labels = %v, want the parent's labels", got)
+	}
+	// Non-favorite item in another vault: vault name only.
+	if got := byName["Work Portal"]; !slices.Equal(got, []string{"Work"}) {
+		t.Errorf("work labels = %v, want [Work]", got)
+	}
+	if got := byName["Production Instructions"]; !slices.Equal(got, []string{"Personal", "docs"}) {
+		t.Errorf("note labels = %v, want vault plus tag", got)
+	}
+
+	// Invariant: every secret produced from a vault carries that vault's name as
+	// its first label, whatever category the item mapped to.
+	for _, vault := range []string{"Personal", "Work"} {
+		filtered, err := NewPUXImporter().Parse(bytes.NewReader(jsonData), int64(len(jsonData)), importers.ImportOptions{
+			VaultFilter: vault,
+		})
+		if err != nil {
+			t.Fatalf("parsing vault %q failed: %v", vault, err)
+		}
+		if len(filtered.Secrets) == 0 {
+			t.Fatalf("vault %q produced no secrets", vault)
+		}
+		for _, s := range filtered.Secrets {
+			if len(s.Labels) == 0 || s.Labels[0] != vault {
+				t.Errorf("secret %q from vault %q has labels %v, want %q first", s.Name, vault, s.Labels, vault)
+			}
+		}
+	}
+}
+
 func TestOnePUXImporter_VaultFilter(t *testing.T) {
 	jsonData := createSynthetic1PUXJSON()
 	r := bytes.NewReader(jsonData)
-	importer := New1PUXImporter()
+	importer := NewPUXImporter()
 
 	// Filter only "Work" vault
-	secrets, err := importer.Parse(r, int64(len(jsonData)), ImportOptions{
+	res, err := importer.Parse(r, int64(len(jsonData)), importers.ImportOptions{
 		VaultFilter: "Work",
 	})
 	if err != nil {
 		t.Fatalf("unexpected error parsing with vault filter: %v", err)
 	}
+	secrets := res.Secrets
 
 	if len(secrets) != 1 {
 		t.Fatalf("expected 1 secret for Work vault filter, got %d", len(secrets))
@@ -331,54 +417,115 @@ func TestOnePUXImporter_VaultFilter(t *testing.T) {
 	}
 }
 
-func TestDetectFormat(t *testing.T) {
-	zipData := createSynthetic1PUXZip(t)
-	rZip := bytes.NewReader(zipData)
-
-	fmtDetected, err := DetectFormat(rZip, int64(len(zipData)), "export.1pux")
-	if err != nil {
-		t.Fatalf("failed to detect format: %v", err)
-	}
-	if fmtDetected != Format1PUX {
-		t.Errorf("expected format %q, got %q", Format1PUX, fmtDetected)
-	}
-
-	jsonData := createSynthetic1PUXJSON()
-	rJSON := bytes.NewReader(jsonData)
-	fmtJSON, err := DetectFormat(rJSON, int64(len(jsonData)), "export.data")
-	if err != nil {
-		t.Fatalf("failed to detect format for json: %v", err)
-	}
-	if fmtJSON != Format1PUX {
-		t.Errorf("expected format %q, got %q", Format1PUX, fmtJSON)
-	}
-}
-
 func TestOnePUXImporter_EmptyAndErrors(t *testing.T) {
 	emptyData := []byte(`{"accounts":[{"attrs":{"name":"Empty"},"vaults":[{"attrs":{"name":"Empty"},"items":[]}]}]}`)
 	r := bytes.NewReader(emptyData)
-	importer := New1PUXImporter()
+	importer := NewPUXImporter()
 
-	_, err := importer.Parse(r, int64(len(emptyData)), ImportOptions{})
-	if err != ErrEmptyExport {
-		t.Fatalf("expected ErrEmptyExport, got %v", err)
+	_, err := importer.Parse(r, int64(len(emptyData)), importers.ImportOptions{})
+	if err != importers.ErrEmptyExport {
+		t.Fatalf("expected importers.ErrEmptyExport, got %v", err)
 	}
 
 	// Non-matching vault
 	jsonData := createSynthetic1PUXJSON()
 	rJSON := bytes.NewReader(jsonData)
-	_, err = importer.Parse(rJSON, int64(len(jsonData)), ImportOptions{
+	_, err = importer.Parse(rJSON, int64(len(jsonData)), importers.ImportOptions{
 		VaultFilter: "NonExistentVault",
 	})
-	if err != ErrEmptyExport {
-		t.Fatalf("expected ErrEmptyExport for non-matching vault filter, got %v", err)
+	if err != importers.ErrEmptyExport {
+		t.Fatalf("expected importers.ErrEmptyExport for non-matching vault filter, got %v", err)
 	}
 
 	// Corrupt JSON
 	corruptData := []byte(`{not valid json}`)
 	rCorrupt := bytes.NewReader(corruptData)
-	_, err = importer.Parse(rCorrupt, int64(len(corruptData)), ImportOptions{})
+	_, err = importer.Parse(rCorrupt, int64(len(corruptData)), importers.ImportOptions{})
 	if err == nil {
 		t.Fatal("expected error parsing corrupt JSON, got nil")
+	}
+}
+
+// An empty Secure Note body is not a secret, and an item that maps to nothing
+// must say so: both outcomes were previously silent (an empty SECURITY_NOTES
+// payload, and warnings discarded with the per-item error).
+func TestOnePUXImporter_UnmappableItemsWarnAndDoNotImport(t *testing.T) {
+	data := []byte(`{"accounts":[{"attrs":{"name":"Acct"},"vaults":[{"attrs":{"name":"Personal"},"items":[
+		{"uuid":"a","categoryUuid":"003","state":"active","overview":{"title":"Blank Note"},"details":{"notesPlain":"   ","sections":[]}},
+		{"uuid":"b","categoryUuid":"004","state":"active","overview":{"title":"Blank Identity"},"details":{"notesPlain":"","sections":[]}},
+		{"uuid":"c","categoryUuid":"001","state":"active","overview":{"title":"Login"},"details":{"loginFields":[{"designation":"username","value":"u"},{"designation":"password","value":"p"}]}}
+	]}]}]}`)
+
+	res, err := NewPUXImporter().Parse(bytes.NewReader(data), int64(len(data)), importers.ImportOptions{})
+	if err != nil {
+		t.Fatalf("Parse() error = %v", err)
+	}
+
+	if len(res.Secrets) != 1 || res.Secrets[0].Name != "Login" {
+		t.Fatalf("Parse() secrets = %+v, want only the Login item", res.Secrets)
+	}
+	if len(res.Warnings) != 2 {
+		t.Fatalf("Parse() warnings = %v, want one per unmappable item", res.Warnings)
+	}
+	for _, want := range []string{"Blank Note", "Blank Identity"} {
+		if !strings.Contains(strings.Join(res.Warnings, "\n"), want) {
+			t.Errorf("warnings %v do not mention %q", res.Warnings, want)
+		}
+	}
+}
+
+// Warnings are the entire answer when nothing maps, so they must survive the
+// ErrEmptyExport return.
+func TestOnePUXImporter_EmptyExportKeepsWarnings(t *testing.T) {
+	data := []byte(`{"accounts":[{"attrs":{"name":"Acct"},"vaults":[{"attrs":{"name":"Personal"},"items":[
+		{"uuid":"a","categoryUuid":"004","state":"active","overview":{"title":"Blank Identity"},"details":{"notesPlain":"","sections":[]}}
+	]}]}]}`)
+
+	res, err := NewPUXImporter().Parse(bytes.NewReader(data), int64(len(data)), importers.ImportOptions{})
+	if !errors.Is(err, importers.ErrEmptyExport) {
+		t.Fatalf("Parse() error = %v, want ErrEmptyExport", err)
+	}
+	if res == nil || len(res.Warnings) != 1 {
+		t.Fatalf("Parse() result = %+v, want the dropped-item warning alongside the error", res)
+	}
+}
+
+// --vault must mean the same thing for a 1PUX vault as for a CSV folder
+// column: hierarchical, separator-insensitive, and not a prefix match.
+func TestOnePUXImporter_VaultFilterIsHierarchical(t *testing.T) {
+	data := []byte(`{"accounts":[{"attrs":{"name":"Acct"},"vaults":[
+		{"attrs":{"name":"Dev/Cloud"},"items":[{"uuid":"a","categoryUuid":"001","state":"active","overview":{"title":"Nested"},"details":{"loginFields":[{"designation":"username","value":"u"}]}}]},
+		{"attrs":{"name":"Development"},"items":[{"uuid":"b","categoryUuid":"001","state":"active","overview":{"title":"Sibling"},"details":{"loginFields":[{"designation":"username","value":"u"}]}}]}
+	]}]}`)
+
+	res, err := NewPUXImporter().Parse(bytes.NewReader(data), int64(len(data)), importers.ImportOptions{VaultFilter: "dev"})
+	if err != nil {
+		t.Fatalf("Parse() error = %v", err)
+	}
+	if len(res.Secrets) != 1 || res.Secrets[0].Name != "Nested" {
+		t.Fatalf("Parse() secrets = %+v, want only the Dev/Cloud item", res.Secrets)
+	}
+}
+
+// A seed 1Password wrote but Ennote cannot use is lost data: the CSV providers
+// warn about it, and the 1PUX path must not swallow it.
+func TestOnePUXImporter_MalformedSeedWarns(t *testing.T) {
+	data := []byte(`{"accounts":[{"attrs":{"name":"Acct"},"vaults":[{"attrs":{"name":"Personal"},"items":[
+		{"uuid":"a","categoryUuid":"001","state":"active","overview":{"title":"GitHub"},"details":{"loginFields":[
+			{"designation":"username","value":"octocat"},
+			{"designation":"password","value":"pw"},
+			{"designation":"totp","value":"NOT_BASE32_818"}
+		]}}
+	]}]}]}`)
+
+	res, err := NewPUXImporter().Parse(bytes.NewReader(data), int64(len(data)), importers.ImportOptions{})
+	if err != nil {
+		t.Fatalf("Parse() error = %v", err)
+	}
+	if len(res.Secrets) != 1 {
+		t.Fatalf("Parse() secrets = %+v, want the login only", res.Secrets)
+	}
+	if len(res.Warnings) != 1 || !strings.Contains(res.Warnings[0], `invalid 2FA seed for "GitHub"`) {
+		t.Fatalf("Parse() warnings = %v, want the malformed-seed report", res.Warnings)
 	}
 }

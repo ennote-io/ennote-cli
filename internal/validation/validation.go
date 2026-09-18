@@ -34,6 +34,21 @@ func ValidateEndpoint(value string) error {
 	return fmt.Errorf("please enter a valid URL, IPv4, or IPv6 address")
 }
 
+// IsEnvName returns true if val is a shell variable name: ASCII letters,
+// digits and underscore, not starting with a digit.
+func IsEnvName(val string) bool {
+	for i, r := range val {
+		switch {
+		case r == '_':
+		case r >= 'A' && r <= 'Z', r >= 'a' && r <= 'z':
+		case r >= '0' && r <= '9' && i > 0:
+		default:
+			return false
+		}
+	}
+	return val != ""
+}
+
 // NormalizeBase32 cleans whitespace and dashes from a base32 string and converts to uppercase.
 func NormalizeBase32(secret string) string {
 	cleanSecret := strings.ToUpper(strings.ReplaceAll(secret, " ", ""))
