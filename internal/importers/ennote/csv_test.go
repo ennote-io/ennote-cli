@@ -310,3 +310,18 @@ func TestParseEmptyExport(t *testing.T) {
 		t.Fatalf("Parse() error = %v, want %v", err, importers.ErrEmptyExport)
 	}
 }
+
+func TestParseKeysValuesMultilineContinuation(t *testing.T) {
+	data := "Name,Type,Value\n" +
+		"Box,KEYS_VALUES,\"Host:h1\nNotes:line one\nline two\"\n"
+
+	secret := secretByName(t, parse(t, data), "Box")
+	kv := keysValues(t, secret)
+
+	if kv["Host"] != "h1" {
+		t.Errorf("Host = %q, want h1", kv["Host"])
+	}
+	if kv["Notes"] != "line one\nline two" {
+		t.Errorf("Notes = %q, want 'line one\\nline two'", kv["Notes"])
+	}
+}

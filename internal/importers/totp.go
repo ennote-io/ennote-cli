@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"slices"
 	"strings"
 
 	"github.com/ennote-io/ennote-cli/internal/validation"
@@ -51,7 +52,8 @@ func CompanionTOTPName(baseTitle string, hasPrimary bool) string {
 
 // BuildCompanionTOTP returns a TWO_FACTOR secret named by CompanionTOTPName.
 // It returns (nil, nil) when rawTOTP is empty, and an error when the seed is
-// present but unusable, which callers record as a warning.
+// present but unusable, which callers record as a warning. labels is copied, so
+// the companion never shares its backing array with the primary secret.
 func BuildCompanionTOTP(baseTitle, rawTOTP, targetURL, notes string, labels []string, hasPrimary bool) (*ImportedSecret, error) {
 	if strings.TrimSpace(rawTOTP) == "" {
 		return nil, nil
@@ -71,7 +73,7 @@ func BuildCompanionTOTP(baseTitle, rawTOTP, targetURL, notes string, labels []st
 		Name:    CompanionTOTPName(baseTitle, hasPrimary),
 		Type:    TypeTwoFactor,
 		URL:     targetURL,
-		Labels:  labels,
+		Labels:  slices.Clone(labels),
 		Notes:   notes,
 		Payload: payload,
 	}, nil

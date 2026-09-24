@@ -63,12 +63,13 @@ func newSecretImportCmd() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "import <file-path>",
-		Short: "Import secrets from an external file (1Password 1PUX, 1Password CSV, Ennote CSV)",
+		Short: "Import secrets from an external file (1Password 1PUX, 1Password CSV, LastPass CSV, Ennote CSV)",
 		Long: `Import and migrate secrets from files into Ennote native secrets (LOGIN_PASSWORD, SECURITY_NOTES, KEYS_VALUES, TWO_FACTOR).
 
 Supported sources:
   - 1Password unencrypted export archives (.1pux)
   - 1Password CSV exports
+  - LastPass CSV exports
   - Generic CSV (columns: Name, Type, Value, Login, Password, URL, Labels, Notes)
 
 The format is detected from the file unless --format is given. Run a bulk
@@ -138,6 +139,7 @@ func runSecretImport(cmd *cobra.Command, filePath string, opts *importOptions) e
 	if err != nil {
 		return err
 	}
+	defer zeroPayloads(export.secrets)
 
 	if opts.dryRun {
 		writeDryRun(out, export, opts.verbose)
@@ -145,6 +147,15 @@ func runSecretImport(cmd *cobra.Command, filePath string, opts *importOptions) e
 	}
 
 	return uploadExport(export, opts, orgID, workspaceID, out, errOut)
+}
+
+// zeroPayloads wipes the plaintext payloads a parse produced. Each secret is
+// wiped again the moment it is encrypted, so this only has to catch the ones
+// that never reach the server.
+func zeroPayloads(secrets []importers.ImportedSecret) {
+	for _, s := range secrets {
+		crypto.ZeroMemory(s.Payload)
+	}
 }
 
 // parseExport reads and normalizes the export file content
