@@ -300,3 +300,26 @@ func TestSecretImportCmd_MissingContext(t *testing.T) {
 		t.Fatal("expected error due to missing context, got nil")
 	}
 }
+
+func TestSecretImportCmd_DryRunLastPassCSV(t *testing.T) {
+	csvPath := writeTempCSV(t, `url,username,password,totp,extra,name,grouping,fav
+https://lastpass.example,user,pw,JBSWY3DPEHPK3PXP,note,LP Service,Work\Prod,1
+http://sn,,,,"NoteType:Server
+Host:1.2.3.4",My Server,Work,0
+`)
+
+	out := runImportDryRun(t, csvPath, map[string]string{"format": "auto", "vault": "Work"})
+
+	for _, want := range []string{
+		"Detected format: LastPass CSV",
+		`scope: vault "Work"`,
+		"Found 3 secret(s)",
+		"LP Service",
+		"LP Service 2FA",
+		"My Server",
+	} {
+		if !strings.Contains(out, want) {
+			t.Errorf("LastPass dry-run output missing %q\n%s", want, out)
+		}
+	}
+}

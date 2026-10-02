@@ -10,6 +10,7 @@ import (
 	"github.com/ennote-io/ennote-cli/internal/importers"
 	"github.com/ennote-io/ennote-cli/internal/importers/csvutil"
 	"github.com/ennote-io/ennote-cli/internal/importers/ennote"
+	"github.com/ennote-io/ennote-cli/internal/importers/lastpass"
 	"github.com/ennote-io/ennote-cli/internal/importers/onepassword"
 )
 
@@ -21,7 +22,10 @@ var fileDetectors = []importers.FileDetector{onepassword.NewPUXImporter()}
 // provider-specific header signature, tried in order before the fallback.
 // Precedence comes from this list versus csvFallbackProvider, never from
 // position within one slice.
-var strictCSVProviders = []importers.Provider{onepassword.NewCSVImporter()}
+var strictCSVProviders = []importers.Provider{
+	onepassword.NewCSVImporter(),
+	lastpass.NewCSVImporter(),
+}
 
 // csvFallbackProvider is the terminal CSV provider, tried only after every
 // strict provider declines. Exactly one provider occupies this slot.

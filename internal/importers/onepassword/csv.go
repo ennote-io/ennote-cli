@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"strings"
 
 	"github.com/ennote-io/ennote-cli/internal/importers"
 	"github.com/ennote-io/ennote-cli/internal/importers/csvutil"
@@ -78,7 +77,7 @@ func (p *CSVImporter) Parse(r io.ReaderAt, size int64, opts importers.ImportOpti
 // row with content that maps to no secret is reported.
 func (p *CSVImporter) normalizeRow(row *csvutil.Row) ([]importers.ImportedSecret, []string) {
 	// A delimiter-only line is exporter noise, not lost data.
-	if row.IsEmpty() || csvTruthy(row.Get("archived")) {
+	if row.IsEmpty() || csvutil.Truthy(row.Get("archived")) {
 		return nil, nil
 	}
 
@@ -96,7 +95,7 @@ func (p *CSVImporter) normalizeRow(row *csvutil.Row) ([]importers.ImportedSecret
 	}
 
 	labels := csvutil.SplitLabels(row.Get("tags"))
-	if csvTruthy(row.Get("favorite")) {
+	if csvutil.Truthy(row.Get("favorite")) {
 		labels = append(labels, "favorite")
 	}
 
@@ -147,14 +146,4 @@ func (p *CSVImporter) normalizeRow(row *csvutil.Row) ([]importers.ImportedSecret
 	}
 
 	return secrets, warnings
-}
-
-// csvTruthy reports whether a 1Password boolean flag column is set.
-func csvTruthy(raw string) bool {
-	switch strings.ToLower(strings.TrimSpace(raw)) {
-	case "1", "true", "yes":
-		return true
-	default:
-		return false
-	}
 }

@@ -174,6 +174,13 @@ func TestGetImporter(t *testing.T) {
 			want:     "1Password CSV",
 		},
 		{
+			name:     "auto-detect lastpass csv",
+			format:   importers.FormatAuto,
+			filename: "lastpass.csv",
+			data:     []byte("url,username,password,totp,extra,name,grouping,fav\nhttps://example.com,user,pw,,note,Service,Work,0\n"),
+			want:     "LastPass CSV",
+		},
+		{
 			name:     "unclaimable headers",
 			format:   importers.FormatCSV,
 			filename: "mystery.csv",

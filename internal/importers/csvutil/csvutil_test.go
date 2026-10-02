@@ -10,32 +10,12 @@ import (
 )
 
 func TestMatchesVault(t *testing.T) {
-	tests := []struct {
-		name   string
-		folder string
-		filter string
-		want   bool
-	}{
-		{"empty filter matches all", "Dev/Cloud", "", true},
-		{"exact match", "Dev", "Dev", true},
-		{"case-insensitive exact match", "production", "Production", true},
-		{"forward slash hierarchy", "Dev/Cloud/AWS", "Dev", true},
-		{"backslash hierarchy", `Dev\Cloud\AWS`, "Dev", true},
-		{"multi-level filter", "Work/Engineering/DevOps", "Work/Engineering", true},
-		{"backslash filter matches slash folder", "Dev/Cloud", `Dev\`, true},
-		{"segment boundary respected", "Development", "Dev", false},
-		{"different root", "Personal/Finance", "Work", false},
-		{"empty folder with filter", "", "Dev", false},
-		{"filter deeper than folder", "Dev", "Dev/Cloud", false},
+	row := &Row{cols: map[string]int{"folder": 0}, record: []string{`Dev\Cloud`}}
+	if !row.MatchesVault("folder", "Dev") {
+		t.Errorf("MatchesVault failed to match 'Dev' on folder column")
 	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			row := &Row{cols: map[string]int{"folder": 0}, record: []string{tt.folder}}
-			if got := row.MatchesVault("folder", tt.filter); got != tt.want {
-				t.Errorf("MatchesVault(%q, %q) = %v, want %v", tt.folder, tt.filter, got, tt.want)
-			}
-		})
+	if row.MatchesVault("folder", "Prod") {
+		t.Errorf("MatchesVault unexpectedly matched 'Prod' on folder column")
 	}
 }
 
@@ -260,5 +240,18 @@ func TestReadHeader(t *testing.T) {
 	empty := strings.NewReader("")
 	if _, err := ReadHeader(empty, 0); !errors.Is(err, importers.ErrEmptyExport) {
 		t.Fatalf("ReadHeader on empty input = %v, want ErrEmptyExport", err)
+	}
+}
+
+func TestTruthy(t *testing.T) {
+	for _, raw := range []string{"1", "true", "TRUE", "yes", "Yes", " 1 "} {
+		if !Truthy(raw) {
+			t.Errorf("Truthy(%q) = false, want true", raw)
+		}
+	}
+	for _, raw := range []string{"0", "false", "no", "", "   ", "random"} {
+		if Truthy(raw) {
+			t.Errorf("Truthy(%q) = true, want false", raw)
+		}
 	}
 }

@@ -71,3 +71,14 @@ func (r *Row) Has(key string) bool {
 func (r *Row) MatchesVault(folderKey, filter string) bool {
 	return importers.MatchesScope(r.Get(folderKey), filter)
 }
+
+// Truthy reports whether a CSV boolean column is set: "1", "true" or "yes",
+// case-insensitive.
+func Truthy(raw string) bool {
+	switch strings.ToLower(strings.TrimSpace(raw)) {
+	case "1", "true", "yes":
+		return true
+	default:
+		return false
+	}
+}
