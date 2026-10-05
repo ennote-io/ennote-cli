@@ -323,3 +323,32 @@ Host:1.2.3.4",My Server,Work,0
 		}
 	}
 }
+
+func TestSecretImportCmd_DryRunBitwardenCSV(t *testing.T) {
+	csvPath := writeTempCSV(t, `folder,favorite,type,name,notes,fields,reprompt,login_uri,login_username,login_password,login_totp
+Work,1,login,BW Service,BW Note,"API: key123",0,https://bitwarden.example.com,bwuser,bwpw,JBSWY3DPEHPK3PXP
+Work,,note,BW Secure Note,Keep safe.,,0,,,,
+Personal,,login,Personal Acct,,,0,,puser,ppw,
+`)
+
+	out := runImportDryRun(t, csvPath, map[string]string{"format": "auto", "vault": "Work"})
+
+	for _, want := range []string{
+		"Detected format: Bitwarden CSV",
+		`scope: vault "Work"`,
+		"Found 3 secret(s)",
+		"BW Service",
+		"BW Service 2FA",
+		"BW Secure Note",
+		"LOGIN_PASSWORD : 1",
+		"SECURITY_NOTES : 1",
+		"TWO_FACTOR     : 1",
+	} {
+		if !strings.Contains(out, want) {
+			t.Errorf("Bitwarden dry-run output missing %q\n%s", want, out)
+		}
+	}
+	if strings.Contains(out, "Personal Acct") {
+		t.Errorf("Personal Acct should have been filtered out by --vault Work:\n%s", out)
+	}
+}
