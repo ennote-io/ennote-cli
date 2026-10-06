@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/ennote-io/ennote-cli/internal/importers"
+	"github.com/ennote-io/ennote-cli/internal/importers/bitwarden"
 	"github.com/ennote-io/ennote-cli/internal/importers/csvutil"
 	"github.com/ennote-io/ennote-cli/internal/importers/ennote"
 	"github.com/ennote-io/ennote-cli/internal/importers/lastpass"
@@ -25,6 +26,7 @@ var fileDetectors = []importers.FileDetector{onepassword.NewPUXImporter()}
 var strictCSVProviders = []importers.Provider{
 	onepassword.NewCSVImporter(),
 	lastpass.NewCSVImporter(),
+	bitwarden.NewCSVImporter(),
 }
 
 // csvFallbackProvider is the terminal CSV provider, tried only after every

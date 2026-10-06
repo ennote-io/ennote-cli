@@ -181,6 +181,20 @@ func TestGetImporter(t *testing.T) {
 			want:     "LastPass CSV",
 		},
 		{
+			name:     "auto-detect bitwarden individual csv",
+			format:   importers.FormatAuto,
+			filename: "bitwarden_export.csv",
+			data:     []byte("folder,favorite,type,name,notes,fields,reprompt,login_uri,login_username,login_password,login_totp\nSocial,1,login,Twitter,,,0,twitter.com,user,pw,\n"),
+			want:     "Bitwarden CSV",
+		},
+		{
+			name:     "auto-detect bitwarden org csv",
+			format:   importers.FormatAuto,
+			filename: "bitwarden_export_org.csv",
+			data:     []byte("collections,type,name,notes,fields,reprompt,login_uri,login_username,login_password,login_totp\nFinance,login,Bank,,,0,bank.com,user,pw,\n"),
+			want:     "Bitwarden CSV",
+		},
+		{
 			name:     "unclaimable headers",
 			format:   importers.FormatCSV,
 			filename: "mystery.csv",
@@ -251,5 +265,41 @@ func TestRegisteredFallbackIsSeparateFromStrictList(t *testing.T) {
 		if provider == csvFallbackProvider {
 			t.Fatalf("fallback provider %q must not appear in strictCSVProviders", provider.ProviderName())
 		}
+	}
+}
+
+// TestStrictProvidersClaimOnlyTheirOwnHeaders guards the disjointness the
+// first-match-wins precedence relies on: every vendor's canonical headers must
+// be claimed by exactly one strict provider.
+func TestStrictProvidersClaimOnlyTheirOwnHeaders(t *testing.T) {
+	headerSets := []struct {
+		name    string
+		want    string
+		headers []string
+	}{
+		{"1password legacy", "1Password CSV", []string{"title", "url", "username", "password", "notes", "otp"}},
+		{"1password 8", "1Password CSV", []string{"Title", "Url", "Username", "Password", "OTPAuth", "Favorite", "Archived", "Tags", "Notes"}},
+		{"lastpass", "LastPass CSV", []string{"url", "username", "password", "totp", "extra", "name", "grouping", "fav"}},
+		{"bitwarden individual", "Bitwarden CSV", []string{"folder", "favorite", "type", "name", "notes", "fields", "reprompt", "login_uri", "login_username", "login_password", "login_totp"}},
+		{"bitwarden organization", "Bitwarden CSV", []string{"collections", "type", "name", "notes", "fields", "reprompt", "login_uri", "login_username", "login_password", "login_totp"}},
+		{"ennote generic", "", []string{"Name", "Type", "Value", "Login", "Password", "URL", "Labels", "Notes"}},
+	}
+
+	for _, hs := range headerSets {
+		t.Run(hs.name, func(t *testing.T) {
+			var matched []string
+			for _, provider := range strictCSVProviders {
+				if provider.MatchHeaders(hs.headers) {
+					matched = append(matched, provider.ProviderName())
+				}
+			}
+
+			switch {
+			case hs.want == "" && len(matched) != 0:
+				t.Errorf("strict providers %v claimed a generic Ennote header; it must reach the fallback", matched)
+			case hs.want != "" && (len(matched) != 1 || matched[0] != hs.want):
+				t.Errorf("strict providers matching = %v, want exactly [%s]", matched, hs.want)
+			}
+		})
 	}
 }
