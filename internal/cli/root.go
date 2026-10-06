@@ -55,17 +55,9 @@ func initConfig() {
 	viper.SetEnvPrefix("ENNOTE")
 	viper.AutomaticEnv()
 
-	if err := viper.ReadInConfig(); err == nil {
+	if err := viper.ReadInConfig(); err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+			fmt.Fprintf(os.Stderr, "Warning: Failed to read config file: %v\n", err)
+		}
 	}
-}
-
-func GetResolvedContext() (string, string, error) {
-	orgID := viper.GetString("organization_id")
-	workspaceID := viper.GetString("workspace_id")
-
-	if orgID == "" || workspaceID == "" {
-		return "", "", fmt.Errorf("organization-id and workspace-id are required. Set them via flags, ENNOTE_ environment variables, or 'ennote config set'")
-	}
-
-	return orgID, workspaceID, nil
 }

@@ -41,9 +41,6 @@ Syntax for the secret query:
 }
 
 func init() {
-	getCmd.Flags().String("organization-id", "", "Target Organization ID (Overrides config/env)")
-	getCmd.Flags().String("workspace-id", "", "Target Workspace ID (Overrides config/env)")
-
 	secretCmd.AddCommand(getCmd)
 }
 

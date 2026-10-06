@@ -80,7 +80,7 @@ var shareCreateCmd = &cobra.Command{
 		if err != nil {
 			return fmt.Errorf("failed to initialize public gRPC client: %w", err)
 		}
-		defer conn.Close()
+		defer func() { _ = conn.Close() }()
 
 		client := clipb.NewCliServiceClient(conn)
 
