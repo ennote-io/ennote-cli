@@ -1,14 +1,11 @@
 package cli
 
 import (
-	"bufio"
 	"context"
-	"encoding/base32"
 	"encoding/json"
 	"fmt"
 	"io"
 	"os"
-	"regexp"
 	"strings"
 	"time"
 
@@ -16,21 +13,10 @@ import (
 	"github.com/ennote-io/ennote-cli/internal/crypto"
 	"github.com/ennote-io/ennote-cli/internal/grpc"
 	clipb "github.com/ennote-io/ennote-cli/internal/grpc/pb"
+	"github.com/ennote-io/ennote-cli/internal/kvtext"
+	"github.com/ennote-io/ennote-cli/internal/validation"
 	"github.com/spf13/cobra"
 )
-
-var (
-	urlRegex  = regexp.MustCompile(`(?i)^(https?://)?((([a-z\d]([a-z\d-]*[a-z\d])*)\.)+[a-z]{2,}|((\d{1,3}\.){3}\d{1,3}))(:\d+)?(/[-a-z\d%_.~+]*)*(\?[;&a-z\d%_.~+=-]*)?(#[-a-z\d_]*)?$`)
-	ipv4Regex = regexp.MustCompile(`^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[0-9][0-9]?)(\.|-)){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[0-9][0-9]?)$`)
-	ipv6Regex = regexp.MustCompile(`^(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))$`)
-)
-
-func validateUrlOrIp(value string) error {
-	if urlRegex.MatchString(value) || ipv4Regex.MatchString(value) || ipv6Regex.MatchString(value) {
-		return nil
-	}
-	return fmt.Errorf("please enter a valid URL, IPv4, or IPv6 address")
-}
 
 var secretCreateCmd = &cobra.Command{
 	Use:   "create <secret-name>",
@@ -56,7 +42,7 @@ func runSecretCreate(cmd *cobra.Command, args []string) error {
 
 	url, _ := cmd.Flags().GetString("url")
 	if url != "" {
-		if err := validateUrlOrIp(url); err != nil {
+		if err := validation.ValidateEndpoint(url); err != nil {
 			return err
 		}
 	}
@@ -86,14 +72,10 @@ func runSecretCreate(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("--value flag is required for TWO_FACTOR type")
 		}
 
-		cleanSecret := strings.ToUpper(strings.ReplaceAll(val, " ", ""))
-		paddedSecret := cleanSecret
-		if padLen := len(cleanSecret) % 8; padLen != 0 {
-			paddedSecret += strings.Repeat("=", 8-padLen)
-		}
-
-		if _, err := base32.StdEncoding.DecodeString(paddedSecret); err != nil {
-			return fmt.Errorf("invalid Base32 secret key format")
+		var cleanSecret string
+		cleanSecret, err = validation.ParseBase32(val)
+		if err != nil {
+			return err
 		}
 
 		payloadBytes, err = json.Marshal(map[string]string{
@@ -115,7 +97,8 @@ func runSecretCreate(cmd *cobra.Command, args []string) error {
 		})
 
 	case "KEYS_VALUES":
-		envMap, err := parseEnvFromStdin()
+		var envMap map[string]string
+		envMap, err = parseEnvFromStdin()
 		if err != nil {
 			return fmt.Errorf("failed to parse KEYS_VALUES from stdin: %w", err)
 		}
@@ -142,7 +125,7 @@ func runSecretCreate(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return fmt.Errorf("failed to initialize gRPC client: %w", err)
 	}
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	client := clipb.NewCliServiceClient(conn)
 
@@ -216,35 +199,17 @@ func parseEnvFromStdin() (map[string]string, error) {
 		return nil, fmt.Errorf("no input detected on stdin")
 	}
 
-	envMap := make(map[string]string)
-	scanner := bufio.NewScanner(os.Stdin)
-
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
-		if line == "" || strings.HasPrefix(line, "#") {
-			continue
-		}
-
-		parts := strings.SplitN(line, "=", 2)
-		if len(parts) == 2 {
-			key := strings.TrimSpace(parts[0])
-			val := strings.TrimSpace(parts[1])
-			val = strings.Trim(val, `"'`)
-			envMap[key] = val
-		}
-	}
-
-	if err := scanner.Err(); err != nil {
+	raw, err := io.ReadAll(os.Stdin)
+	if err != nil {
 		return nil, err
 	}
-	return envMap, nil
+
+	return kvtext.ParseDotenv(string(raw)), nil
 }
 
 func init() {
 	secretCmd.AddCommand(secretCreateCmd)
 
-	secretCreateCmd.Flags().String("organization-id", "", "Target Organization ID")
-	secretCreateCmd.Flags().String("workspace-id", "", "Target Workspace ID")
 	secretCreateCmd.Flags().String("type", "", "Type of secret (LOGIN_PASSWORD, KEYS_VALUES, SECURITY_NOTES, TWO_FACTOR)")
 	_ = secretCreateCmd.MarkFlagRequired("type")
 

@@ -47,3 +47,4 @@ jobs:
           HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.HOMEBREW_TAP_GITHUB_TOKEN }}
           SCOOP_BUCKET_GITHUB_TOKEN: ${{ secrets.SCOOP_BUCKET_GITHUB_TOKEN }}
           BACKEND_URL: ${{ secrets.BACKEND_URL }}
+          AUTH_URL: ${{ secrets.AUTH_URL }}
