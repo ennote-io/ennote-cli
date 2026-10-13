@@ -45,7 +45,7 @@ var loginCmd = &cobra.Command{
 	Example:      `  ennote auth login`,
 	SilenceUsage: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		loginURL := "https://app.ennote.io/cli-login"
+		loginURL := config.AuthURL
 
 		fmt.Println("Opening browser to authenticate...")
 		if err := openBrowser(loginURL); err != nil {

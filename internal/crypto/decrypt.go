@@ -68,11 +68,12 @@ func DecapsulatePayload(clientPrivateKey, reWrappedKeyBlob, encryptedBlob []byte
 	algoId := encryptedBlob[0]
 
 	var wrappedKeySize uint32
-	if algoId == AlgorithmIDMlKem1024 {
+	switch algoId {
+	case AlgorithmIDMlKem1024:
 		wrappedKeySize = EncapsulationSizeKyber
-	} else if algoId == AlgorithmIDRsaOaep256 {
+	case AlgorithmIDRsaOaep256:
 		wrappedKeySize = EncapsulationSizeRsa
-	} else {
+	default:
 		return nil, errors.New("unknown cryptographic algorithm")
 	}
 
