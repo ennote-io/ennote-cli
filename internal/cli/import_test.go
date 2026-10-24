@@ -224,7 +224,7 @@ Recovery Note,SECURITY_NOTES,keep this offline,,,,
 	out := runImportDryRun(t, csvPath, map[string]string{"format": "csv"})
 
 	for _, want := range []string{
-		"Detected format: Ennote CSV",
+		"Detected format: Generic CSV",
 		"Found 3 secret(s)",
 		"GitHub",
 		"Deploy Keys",
