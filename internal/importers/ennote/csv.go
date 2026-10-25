@@ -33,7 +33,7 @@ var valueColumns = []string{"value", "keys_values", "payload"}
 
 // ProviderName identifies the resolved source format for CLI output.
 func (p *CSVImporter) ProviderName() string {
-	return "Ennote CSV"
+	return "Generic CSV"
 }
 
 // MatchHeaders reports whether headers name a secret and carry content for it.
