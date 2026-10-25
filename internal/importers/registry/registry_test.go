@@ -141,21 +141,21 @@ func TestGetImporter(t *testing.T) {
 			format:   importers.FormatAuto,
 			filename: "secrets.csv",
 			data:     []byte("Name,Type,Value\nToken,SECURITY_NOTES,abc\n"),
-			want:     "Ennote CSV",
+			want:     "Generic CSV",
 		},
 		{
 			name:     "explicit csv format on an unrecognized extension",
 			format:   importers.FormatCSV,
 			filename: "export.data",
 			data:     []byte("name,login,password\nAWS,admin,pw\n"),
-			want:     "Ennote CSV",
+			want:     "Generic CSV",
 		},
 		{
 			name:     "csv with a BOM still resolves",
 			format:   importers.FormatAuto,
 			filename: "excel.csv",
 			data:     append([]byte{0xEF, 0xBB, 0xBF}, []byte("Name,Value\nToken,abc\n")...),
-			want:     "Ennote CSV",
+			want:     "Generic CSV",
 		},
 		{
 			// Comma is the only delimiter: an Excel-EU re-save collapses to one

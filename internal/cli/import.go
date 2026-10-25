@@ -63,7 +63,7 @@ func newSecretImportCmd() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "import <file-path>",
-		Short: "Import secrets from an external file (1Password 1PUX, 1Password CSV, LastPass CSV, Bitwarden CSV, Ennote CSV)",
+		Short: "Import secrets from an external file (1Password 1PUX, 1Password CSV, LastPass CSV, Bitwarden CSV)",
 		Long: `Import and migrate secrets from files into Ennote native secrets (LOGIN_PASSWORD, SECURITY_NOTES, KEYS_VALUES, TWO_FACTOR).
 
 Supported sources:
